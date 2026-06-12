@@ -1,0 +1,13 @@
+Guarda aqui el render del mascot como:  mascot.png  (fondo transparente)
+
+El componente components/Mascot.tsx ya lo referencia via <img src="/mascot.png">.
+Mientras el archivo no exista, se muestra una silueta SVG de respaldo.
+En cuanto pongas mascot.png, el render real toma su lugar automaticamente
+(con drop-shadow azul y animacion de flotado ya aplicados).
+
+Prompt sugerido para generarlo (Midjourney / DALL-E / Flux):
+"black hooded figure mascot, glowing blue eyes inside dark hood, arms crossed,
+confident stance, black techwear hoodie with glowing blue planet logo, dark
+sneakers with neon blue soles, surrounded by blue energy flames, premium
+gaming character, Riot Games / Arcane quality, octane render, transparent
+background, full body, front view"

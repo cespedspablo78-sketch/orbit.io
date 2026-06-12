@@ -1,0 +1,47 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  @apply bg-space-950 text-white antialiased overflow-x-hidden;
+}
+
+::selection {
+  background: rgba(0, 152, 234, 0.35);
+}
+
+.text-glow {
+  text-shadow: 0 0 24px rgba(51, 187, 255, 0.5);
+}
+
+.shimmer {
+  background: linear-gradient(
+    100deg,
+    rgba(255, 255, 255, 0.03) 40%,
+    rgba(255, 255, 255, 0.08) 50%,
+    rgba(255, 255, 255, 0.03) 60%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.4s linear infinite;
+}
+
+@keyframes shimmer {
+  to {
+    background-position-x: -200%;
+  }
+}
+
+.grid-bg {
+  background-image: linear-gradient(rgba(0, 152, 234, 0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 152, 234, 0.045) 1px, transparent 1px);
+  background-size: 56px 56px;
+  mask-image: radial-gradient(ellipse 75% 75% at 50% 20%, black 0%, transparent 100%);
+}
