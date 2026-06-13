@@ -181,17 +181,6 @@ function Nav() {
           >
             <XIcon />
           </motion.a>
-          <MotionLink
-            href="/create"
-            whileHover={{ scale: 1.04 }}
-            whileTap={{ scale: 0.97 }}
-            className="ml-1 flex items-center gap-2 rounded-full bg-gradient-to-b from-ton-bright to-ton-deep px-5 py-2 text-sm font-bold shadow-glow-sm transition-shadow hover:shadow-glow-md"
-          >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4" aria-hidden>
-              <path d="M12 5v14M5 12h14" />
-            </svg>
-            Create
-          </MotionLink>
         </div>
       </div>
     </motion.nav>
@@ -295,10 +284,10 @@ function Hero() {
             className="mt-9 flex flex-wrap gap-4"
           >
             <MotionLink
-              href="/launch"
+              href="/create"
               whileHover={{ scale: 1.05, boxShadow: "0 0 60px rgba(0,152,234,0.7)" }}
               whileTap={{ scale: 0.96 }}
-              className="relative flex items-center gap-2.5 overflow-hidden rounded-xl bg-ton px-9 py-4 font-display font-bold shadow-glow-md"
+              className="relative flex items-center gap-2.5 overflow-hidden rounded-xl bg-ton px-10 py-4 font-display text-lg font-bold shadow-glow-md"
             >
               <motion.span
                 aria-hidden
@@ -306,17 +295,10 @@ function Hero() {
                 transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut", repeatDelay: 1.8 }}
                 className="absolute inset-y-0 left-0 w-1/3 -skew-x-12 bg-white/25 blur-sm"
               />
-              <span className="relative">Launch App</span>
-              <Icon d={ICONS.rocket} className="relative h-5 w-5 text-white" />
-            </MotionLink>
-            <MotionLink
-              href="/docs"
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.97 }}
-              className="flex items-center gap-2.5 rounded-xl border border-white/15 bg-transparent px-9 py-4 font-display font-semibold text-white/85 backdrop-blur transition hover:border-ton/40"
-            >
-              Explore Docs
-              <Icon d={ICONS.doc} className="h-5 w-5 text-white/70" />
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" className="relative h-5 w-5" aria-hidden>
+                <path d="M12 5v14M5 12h14" />
+              </svg>
+              <span className="relative">Create Coin</span>
             </MotionLink>
           </motion.div>
 
