@@ -18,11 +18,11 @@ export default function Mascot() {
 
   return (
     <div className="relative mx-auto h-[600px] w-full max-w-[640px] sm:h-[720px]">
-      {/* energy glow behind the character */}
+      {/* energy glow behind the character — dialed back for a calmer hero */}
       <motion.div
-        animate={{ opacity: [0.4, 0.85, 0.4] }}
-        transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-        className="absolute left-1/2 top-[52%] h-[320px] w-[320px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-ton/20 blur-[80px]"
+        animate={{ opacity: [0.28, 0.6, 0.28] }}
+        transition={{ duration: 3.6, repeat: Infinity, ease: "easeInOut" }}
+        className="absolute left-1/2 top-[52%] h-[300px] w-[300px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-ton/15 blur-[80px]"
       />
 
       {/* blue fire rising around the character */}
@@ -30,10 +30,10 @@ export default function Mascot() {
 
       {/* the Orbiter — float + breathing */}
       <motion.div
-        animate={{ y: [0, -14, 0], scale: [1, 1.013, 1] }}
-        transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+        animate={{ y: [0, -12, 0], scale: [1, 1.012, 1] }}
+        transition={{ duration: 4.5, repeat: Infinity, ease: "easeInOut" }}
         style={{ x: "-50%" }}
-        className="absolute bottom-[2%] left-1/2 z-10 w-[400px] sm:w-[480px]"
+        className="absolute bottom-[6%] left-1/2 z-10 w-[300px] sm:w-[360px]"
       >
         {hasRender ? (
           // eslint-disable-next-line @next/next/no-img-element
@@ -44,7 +44,7 @@ export default function Mascot() {
             className="w-full"
             style={{
               filter:
-                "drop-shadow(0 0 60px rgba(0,152,234,0.5)) drop-shadow(0 0 120px rgba(0,100,200,0.3))",
+                "drop-shadow(0 0 45px rgba(0,152,234,0.35)) drop-shadow(0 0 100px rgba(0,100,200,0.2))",
               // fades the edges so even a baked dark background melts into the scene
               WebkitMaskImage:
                 "radial-gradient(ellipse 52% 52% at 50% 48%, black 62%, transparent 88%)",
@@ -75,7 +75,7 @@ function Flames() {
       animate={{ scaleY: [1, 1.08, 1] }}
       transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
       style={{ originY: 1, x: "-50%" }}
-      className="absolute bottom-[11%] left-1/2 z-[5] w-[110%]"
+      className="absolute bottom-[14%] left-1/2 z-[5] w-[78%]"
       aria-hidden
     >
       <defs>
@@ -86,19 +86,19 @@ function Flames() {
       {/* outer */}
       <path
         d="M28 220 Q44 130 84 92 Q92 140 110 116 Q112 62 150 26 Q152 84 170 64 Q174 22 180 6 Q192 30 196 66 Q214 46 222 34 Q232 86 250 108 Q264 90 270 100 Q298 140 314 220Z"
-        fill="rgba(0,100,200,0.3)"
+        fill="rgba(0,100,200,0.2)"
         filter="url(#orb-fblur)"
       />
       {/* inner */}
       <path
         d="M62 220 Q78 150 106 124 Q113 152 128 136 Q138 92 170 64 Q174 108 188 92 Q198 120 214 134 Q228 122 240 148 Q256 175 274 220Z"
-        fill="rgba(0,152,234,0.5)"
+        fill="rgba(0,152,234,0.35)"
         filter="url(#orb-fblur)"
       />
       {/* core */}
       <path
         d="M98 220 Q112 168 134 154 Q144 172 160 160 Q170 138 180 144 Q196 162 212 172 Q226 184 240 220Z"
-        fill="rgba(100,200,255,0.4)"
+        fill="rgba(100,200,255,0.28)"
         filter="url(#orb-fblur)"
       />
     </motion.svg>

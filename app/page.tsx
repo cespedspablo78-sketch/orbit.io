@@ -8,6 +8,10 @@ import Mascot from "@/components/Mascot";
 
 const MotionLink = motion(Link);
 
+/* ---------- social links ---------- */
+const TELEGRAM_URL = "https://t.me/+iwn4e-sDm31jMzQx";
+const X_URL = "https://x.com/vynxjz";
+
 /* real-time 3D hero scene — client-only, never SSR'd */
 const Scene3D = dynamic(() => import("@/components/Scene3D"), { ssr: false });
 
@@ -156,7 +160,9 @@ function Nav() {
 
         <div className="flex items-center gap-2.5">
           <motion.a
-            href="#"
+            href={TELEGRAM_URL}
+            target="_blank"
+            rel="noopener noreferrer"
             whileHover={{ scale: 1.08 }}
             whileTap={{ scale: 0.95 }}
             aria-label="Telegram"
@@ -165,7 +171,9 @@ function Nav() {
             <TelegramIcon />
           </motion.a>
           <motion.a
-            href="#"
+            href={X_URL}
+            target="_blank"
+            rel="noopener noreferrer"
             whileHover={{ scale: 1.08 }}
             whileTap={{ scale: 0.95 }}
             aria-label="X"
@@ -227,7 +235,7 @@ function Hero() {
         <Scene3D />
       </div>
       {/* subtle grid over the scene */}
-      <div className="grid-bg pointer-events-none absolute inset-0 opacity-60" />
+      <div className="grid-bg pointer-events-none absolute inset-0 opacity-40" />
 
       {/* ===== content ===== */}
       <div className="relative z-10 mx-auto grid max-w-[1400px] items-center gap-10 px-6 pb-16 pt-10 lg:grid-cols-2 lg:pt-6">
@@ -534,10 +542,10 @@ function Footer() {
           ))}
         </div>
         <div className="flex items-center gap-4 text-white/45">
-          <a href="#" aria-label="Telegram" className="transition hover:text-ton-bright">
+          <a href={TELEGRAM_URL} target="_blank" rel="noopener noreferrer" aria-label="Telegram" className="transition hover:text-ton-bright">
             <TelegramIcon className="h-4 w-4" />
           </a>
-          <a href="#" aria-label="X" className="transition hover:text-ton-bright">
+          <a href={X_URL} target="_blank" rel="noopener noreferrer" aria-label="X" className="transition hover:text-ton-bright">
             <XIcon className="h-4 w-4" />
           </a>
         </div>

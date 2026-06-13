@@ -39,8 +39,8 @@ function useGlowTexture() {
     c.width = c.height = 256;
     const ctx = c.getContext("2d")!;
     const g = ctx.createRadialGradient(128, 128, 0, 128, 128, 128);
-    g.addColorStop(0, "rgba(0,110,220,0.65)");
-    g.addColorStop(0.5, "rgba(0,80,180,0.25)");
+    g.addColorStop(0, "rgba(24,86,150,0.55)");
+    g.addColorStop(0.5, "rgba(18,64,128,0.2)");
     g.addColorStop(1, "rgba(0,0,0,0)");
     ctx.fillStyle = g;
     ctx.fillRect(0, 0, 256, 256);
@@ -61,15 +61,15 @@ function Nebula() {
       {/* main glow concentrated behind the character — corners stay near-black */}
       <mesh position={[2.2, 0.3, -7]}>
         <planeGeometry args={[11, 8]} />
-        <meshBasicMaterial map={tex} transparent opacity={0.5} blending={THREE.AdditiveBlending} depthWrite={false} />
+        <meshBasicMaterial map={tex} transparent opacity={0.35} blending={THREE.AdditiveBlending} depthWrite={false} />
       </mesh>
       <mesh position={[-5.5, 1, -11]}>
         <planeGeometry args={[14, 9]} />
-        <meshBasicMaterial map={tex} transparent opacity={0.18} blending={THREE.AdditiveBlending} depthWrite={false} />
+        <meshBasicMaterial map={tex} transparent opacity={0.13} blending={THREE.AdditiveBlending} depthWrite={false} />
       </mesh>
       <mesh position={[6, 3.5, -12]}>
         <planeGeometry args={[12, 7]} />
-        <meshBasicMaterial map={tex} transparent opacity={0.12} blending={THREE.AdditiveBlending} depthWrite={false} />
+        <meshBasicMaterial map={tex} transparent opacity={0.08} blending={THREE.AdditiveBlending} depthWrite={false} />
       </mesh>
     </group>
   );
@@ -105,7 +105,7 @@ function Particles({ count = 160 }: { count?: number }) {
       <bufferGeometry>
         <bufferAttribute attach="attributes-position" args={[positions, 3]} />
       </bufferGeometry>
-      <pointsMaterial color={TON_BRIGHT} size={0.035} transparent opacity={0.55} sizeAttenuation depthWrite={false} />
+      <pointsMaterial color={TON_BRIGHT} size={0.03} transparent opacity={0.4} sizeAttenuation depthWrite={false} />
     </points>
   );
 }
@@ -192,12 +192,12 @@ function OrbitRing({
   return (
     <group rotation={[tilt, 0, 0.08]} position={[0, -0.2, 0]}>
       <mesh>
-        <torusGeometry args={[radius, 0.012, 12, 160]} />
+        <torusGeometry args={[radius, 0.007, 12, 180]} />
         <meshBasicMaterial color={TON_BLUE} transparent opacity={opacity} />
       </mesh>
       <group ref={sat}>
         <mesh position={[radius, 0, 0]}>
-          <sphereGeometry args={[0.045, 16, 16]} />
+          <sphereGeometry args={[0.03, 16, 16]} />
           <meshBasicMaterial color="#7FDBFF" />
         </mesh>
       </group>
@@ -313,23 +313,23 @@ export default function Scene3D() {
       camera={{ position: [0, 0.4, 6.5], fov: 45 }}
       gl={{ antialias: true, powerPreference: "high-performance" }}
     >
-      <color attach="background" args={["#04070D"]} />
-      <fog attach="fog" args={["#04070D", 10, 24]} />
+      <color attach="background" args={["#03050A"]} />
+      <fog attach="fog" args={["#03050A", 10, 24]} />
 
-      {/* cinematic lighting: ambient + cool key + blue rim */}
-      <ambientLight intensity={0.3} color="#7FB3E8" />
-      <directionalLight position={[-5, 4, 5]} intensity={1.1} color="#BFE3FF" />
-      <pointLight position={[3, 2, -3]} intensity={2.5} color={TON_BLUE} distance={14} decay={2} />
+      {/* cinematic lighting: ambient + cool key + blue rim (dialed back 30% for calm) */}
+      <ambientLight intensity={0.25} color="#7FB3E8" />
+      <directionalLight position={[-5, 4, 5]} intensity={0.77} color="#BFE3FF" />
+      <pointLight position={[3, 2, -3]} intensity={1.75} color={TON_BLUE} distance={14} decay={2} />
 
-      <Stars radius={60} depth={40} count={2500} factor={3.5} saturation={0} fade speed={0.5} />
+      <Stars radius={60} depth={40} count={1800} factor={3} saturation={0} fade speed={0.35} />
       <Nebula />
-      <Particles count={220} />
+      <Particles count={132} />
       <Planet />
 
       <HeroGroup>
-        <OrbitRing radius={1.55} tilt={1.25} speed={0.5} opacity={0.55} />
-        <OrbitRing radius={1.85} tilt={1.12} speed={-0.32} opacity={0.38} />
-        <OrbitRing radius={2.15} tilt={0.98} speed={0.22} opacity={0.22} />
+        <OrbitRing radius={1.55} tilt={1.25} speed={0.25} opacity={0.5} />
+        <OrbitRing radius={1.85} tilt={1.12} speed={-0.16} opacity={0.32} />
+        <OrbitRing radius={2.15} tilt={0.98} speed={0.11} opacity={0.18} />
 
         <Coin radius={2.5} height={1.5} scale={0.5} speed={1} phase={0.4} tilt={0.3} />
         <Coin radius={2.9} height={1.9} scale={0.65} speed={0.8} phase={2.1} tilt={-0.25} />
@@ -346,7 +346,7 @@ export default function Scene3D() {
 
       <EffectComposer multisampling={0}>
         <DepthOfField focusDistance={0.02} focalLength={0.05} bokehScale={2.5} />
-        <Bloom intensity={1.1} luminanceThreshold={0.22} luminanceSmoothing={0.55} mipmapBlur />
+        <Bloom intensity={0.77} luminanceThreshold={0.26} luminanceSmoothing={0.6} mipmapBlur />
         <Vignette eskil={false} offset={0.12} darkness={0.95} />
       </EffectComposer>
     </Canvas>
