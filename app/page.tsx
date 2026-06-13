@@ -182,15 +182,15 @@ function Nav() {
             <XIcon />
           </motion.a>
           <MotionLink
-            href="/launch"
+            href="/create"
             whileHover={{ scale: 1.04 }}
             whileTap={{ scale: 0.97 }}
             className="ml-1 flex items-center gap-2 rounded-full bg-gradient-to-b from-ton-bright to-ton-deep px-5 py-2 text-sm font-bold shadow-glow-sm transition-shadow hover:shadow-glow-md"
           >
-            Launch App
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4" aria-hidden>
-              <path d="M5 12h14M13 6l6 6-6 6" />
+              <path d="M12 5v14M5 12h14" />
             </svg>
+            Create
           </MotionLink>
         </div>
       </div>
