@@ -70,7 +70,7 @@ export default function Launch() {
           href="/"
           className="text-sm text-white/40 transition hover:text-white/70"
         >
-          ← orbit.fun
+          ← VYNX
         </Link>
 
         {/* orbit emblem — planet + rotating rings */}
@@ -116,7 +116,7 @@ export default function Launch() {
           transition={{ duration: 0.55, delay: 0.1 }}
           className="mt-10 font-display text-4xl font-bold tracking-tight sm:text-5xl"
         >
-          The launchpad
+          VYNX
           <br />
           is <span className="text-glow text-ton-bright">coming.</span>
         </motion.h1>
@@ -148,7 +148,7 @@ export default function Launch() {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@orbit.fun"
+                placeholder="you@vynx.fun"
                 aria-label="Email"
                 className="flex-1 rounded-xl border border-white/10 bg-space-900 px-5 py-3.5 text-sm outline-none transition placeholder:text-white/25 focus:border-ton/40"
               />

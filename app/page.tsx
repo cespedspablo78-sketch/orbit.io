@@ -129,7 +129,7 @@ function Nav() {
         <a href="#home" className="flex items-center gap-2.5 font-display text-lg font-bold tracking-tight">
           <PlanetMark className="h-8 w-8" />
           <span>
-            ORBIT<span className="text-ton-bright">.FUN</span>
+            VYN<span className="text-ton-bright">X</span>
           </span>
         </a>
 
@@ -521,7 +521,7 @@ function Footer() {
       <div className="mx-auto flex max-w-6xl flex-col items-center gap-6 sm:flex-row sm:justify-between">
         <a href="#home" className="flex items-center gap-2 font-display font-bold">
           <PlanetMark className="h-6 w-6" />
-          ORBIT<span className="text-ton-bright">.FUN</span>
+          VYN<span className="text-ton-bright">X</span>
         </a>
         <div className="flex gap-8 text-sm font-medium text-white/45">
           {[
@@ -542,7 +542,7 @@ function Footer() {
           </a>
         </div>
       </div>
-      <p className="mt-8 text-center text-xs text-white/25">© 2026 Orbit.fun — Every token takes orbit.</p>
+      <p className="mt-8 text-center text-xs text-white/25">© 2026 VYNX — Every token takes orbit.</p>
     </footer>
   );
 }

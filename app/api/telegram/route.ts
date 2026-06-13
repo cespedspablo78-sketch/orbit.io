@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import TelegramBot from "node-telegram-bot-api";
 
 /**
- * Telegram webhook for the ORBIT.FUN bot.
+ * Telegram webhook for the VYNX bot.
  *
  * Activate (browser, once per deploy URL change):
  *   https://api.telegram.org/bot<TELEGRAM_BOT_TOKEN>/setWebhook?url=<SITE>/api/telegram
@@ -45,7 +45,7 @@ function inviteMessage(userId?: number): string {
 
 const MESSAGES: Record<string, string> = {
   "/start": [
-    "<b>Welcome to ORBIT.FUN</b> 🪐",
+    "<b>Welcome to VYNX</b> 🪐",
     "",
     "Launch memecoins on TON in seconds. No code, no gas math, no rug levers.",
     "",
@@ -60,12 +60,12 @@ const MESSAGES: Record<string, string> = {
     `${SITE}/launch`,
   ].join("\n"),
   "/website": [
-    "<b>ORBIT.FUN</b> 🌐",
+    "<b>VYNX</b> 🌐",
     "",
     SITE,
   ].join("\n"),
   "/roadmap": [
-    "<b>ORBIT.FUN — Roadmap</b>",
+    "<b>VYNX — Roadmap</b>",
     "",
     "🔵 <b>Phase 1 — Now:</b> Landing + Waitlist",
     "⚪ <b>Phase 2 — Q3 2026:</b> Beta (testnet contracts, token creation, bonding curve)",
@@ -75,7 +75,7 @@ const MESSAGES: Record<string, string> = {
     "Built in public. Every step, every ship.",
   ].join("\n"),
   "/docs": [
-    "<b>How Orbit works</b> — the short version:",
+    "<b>How VYNX works</b> — the short version:",
     "",
     "1️⃣ Create — name, ticker, image. 20 seconds.",
     "2️⃣ Launch — your Jetton goes live on a bonding curve.",
@@ -86,7 +86,7 @@ const MESSAGES: Record<string, string> = {
   "/help": [
     "<b>Commands</b>",
     "",
-    "/start — what is ORBIT.FUN",
+    "/start — what is VYNX",
     "/waitlist — join the waitlist",
     "/invite — share link to climb the waitlist",
     "/website — open the site",
@@ -142,7 +142,7 @@ export async function POST(req: NextRequest) {
 export async function GET() {
   return NextResponse.json({
     ok: true,
-    service: "orbit.fun telegram webhook",
+    service: "vynx telegram webhook",
     configured: Boolean(TOKEN),
   });
 }

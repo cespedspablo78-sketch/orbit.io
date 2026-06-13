@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-export const metadata = { title: "Docs — ORBIT.FUN" };
+export const metadata = { title: "Docs — VYNX" };
 
 const SECTIONS = [
   {
@@ -26,11 +26,11 @@ export default function Docs() {
     <main className="min-h-screen bg-space-950 px-6 py-24 font-sans">
       <div className="mx-auto max-w-2xl">
         <Link href="/" className="text-sm text-white/40 transition hover:text-white/70">
-          ← Back to orbit.fun
+          ← Back to VYNX
         </Link>
         <p className="mt-10 text-xs font-bold uppercase tracking-[0.25em] text-ton-bright/80">Docs</p>
         <h1 className="mt-4 font-display text-4xl font-bold tracking-tight sm:text-5xl">
-          How Orbit works.
+          How VYNX works.
         </h1>
         <p className="mt-4 text-white/45">Short version. Full docs ship with the beta.</p>
 

@@ -1,4 +1,4 @@
-# ORBIT.FUN — Landing Page
+# VYNX — Landing Page
 
 Premium memecoin launchpad landing for TON. Next.js + TailwindCSS + Framer Motion.
 
