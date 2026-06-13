@@ -33,6 +33,16 @@ const KEYBOARD = {
   ],
 };
 
+function inviteMessage(userId?: number): string {
+  const ref = userId ? `${SITE}/launch?ref=${userId}` : `${SITE}/launch`;
+  return [
+    "<b>Climb the waitlist 🚀</b>",
+    "",
+    "Share your link — the more friends join, the higher you orbit:",
+    ref,
+  ].join("\n");
+}
+
 const MESSAGES: Record<string, string> = {
   "/start": [
     "<b>Welcome to ORBIT.FUN</b> 🪐",
@@ -40,12 +50,19 @@ const MESSAGES: Record<string, string> = {
     "Launch memecoins on TON in seconds. No code, no gas math, no rug levers.",
     "",
     "The launchpad is coming — be first in orbit. Early users get priority access.",
+    "",
+    "Tap below or use /help to see all commands.",
   ].join("\n"),
   "/waitlist": [
     "<b>Be first in orbit.</b>",
     "",
     "Early users get priority access when the launchpad goes live:",
     `${SITE}/launch`,
+  ].join("\n"),
+  "/website": [
+    "<b>ORBIT.FUN</b> 🌐",
+    "",
+    SITE,
   ].join("\n"),
   "/roadmap": [
     "<b>ORBIT.FUN — Roadmap</b>",
@@ -71,6 +88,8 @@ const MESSAGES: Record<string, string> = {
     "",
     "/start — what is ORBIT.FUN",
     "/waitlist — join the waitlist",
+    "/invite — share link to climb the waitlist",
+    "/website — open the site",
     "/roadmap — where we are, where we're going",
     "/docs — how it works",
     "/help — this menu",
@@ -91,12 +110,13 @@ export async function POST(req: NextRequest) {
     const update = await req.json();
     const msg = update.message ?? update.edited_message;
     const chatId: number | undefined = msg?.chat?.id;
+    const userId: number | undefined = msg?.from?.id;
     const text: string = msg?.text ?? "";
     if (!chatId || !text) return NextResponse.json({ ok: true });
 
     // "/start@OrbitFunBot extra" → "/start"
     const cmd = text.trim().split(/[\s@]/)[0].toLowerCase();
-    const reply = MESSAGES[cmd];
+    const reply = cmd === "/invite" ? inviteMessage(userId) : MESSAGES[cmd];
 
     if (reply) {
       await bot.sendMessage(chatId, reply, {
