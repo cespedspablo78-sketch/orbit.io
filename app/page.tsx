@@ -55,6 +55,26 @@ const PlanetMark = ({ className = "h-9 w-9" }: { className?: string }) => (
   </svg>
 );
 
+/* brand logomark — uses /public/logo.png, falls back to PlanetMark until it exists */
+function LogoMark({ className = "h-8 w-8" }: { className?: string }) {
+  const [ok, setOk] = useState(true);
+  return ok ? (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src="/logo.png"
+      alt="VYNX"
+      onError={() => setOk(false)}
+      className={`${className} object-contain`}
+      style={{
+        WebkitMaskImage: "radial-gradient(circle at 50% 50%, black 60%, transparent 78%)",
+        maskImage: "radial-gradient(circle at 50% 50%, black 60%, transparent 78%)",
+      }}
+    />
+  ) : (
+    <PlanetMark className={className} />
+  );
+}
+
 const TonShield = ({ className = "h-4 w-4" }: { className?: string }) => (
   <svg viewBox="0 0 32 32" fill="none" className={className} aria-hidden>
     <defs>
@@ -131,7 +151,7 @@ function Nav() {
     >
       <div className="mx-auto flex h-16 max-w-[1400px] items-center justify-between px-6">
         <a href="#home" className="flex items-center gap-2.5 font-display text-lg font-bold tracking-tight">
-          <PlanetMark className="h-8 w-8" />
+          <LogoMark className="h-9 w-9" />
           <span>
             VYN<span className="text-ton-bright">X</span>
           </span>
@@ -510,7 +530,7 @@ function Footer() {
     <footer className="border-t border-white/[0.06] bg-space-950 px-6 py-10">
       <div className="mx-auto flex max-w-6xl flex-col items-center gap-6 sm:flex-row sm:justify-between">
         <a href="#home" className="flex items-center gap-2 font-display font-bold">
-          <PlanetMark className="h-6 w-6" />
+          <LogoMark className="h-7 w-7" />
           VYN<span className="text-ton-bright">X</span>
         </a>
         <div className="flex gap-8 text-sm font-medium text-white/45">
