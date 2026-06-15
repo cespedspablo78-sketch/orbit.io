@@ -67,7 +67,13 @@ export default function CreateCoin() {
   const [name, setName] = useState("");
   const [ticker, setTicker] = useState("");
   const [desc, setDesc] = useState("");
-  const [media, setMedia] = useState<{ url: string; isVideo: boolean } | null>(null);
+  const [media, setMedia] = useState<{
+    preview: string;
+    isVideo: boolean;
+    ipfsUrl?: string;
+    uploading?: boolean;
+    uploadError?: string;
+  } | null>(null);
   const [website, setWebsite] = useState("");
   const [telegram, setTelegram] = useState("");
   const [twitter, setTwitter] = useState("");
@@ -80,10 +86,29 @@ export default function CreateCoin() {
   const [error, setError] = useState("");
   const [result, setResult] = useState<{ address: string; link: string } | null>(null);
 
-  const handleFile = (file?: File) => {
+  const handleFile = async (file?: File) => {
     if (!file) return;
-    if (!file.type.startsWith("image/") && !file.type.startsWith("video/")) return;
-    setMedia({ url: URL.createObjectURL(file), isVideo: file.type.startsWith("video/") });
+    const isVideo = file.type.startsWith("video/");
+    if (!file.type.startsWith("image/") && !isVideo) return;
+
+    const preview = URL.createObjectURL(file);
+    setMedia({ preview, isVideo, uploading: !isVideo });
+
+    // only images are pinned to IPFS (token images)
+    if (isVideo) return;
+
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+      const res = await fetch("/api/upload", { method: "POST", body: fd });
+      const data = await res.json();
+      if (!res.ok || !data.ipfsUrl) throw new Error(data.error || "Upload failed");
+      setMedia((m) => (m ? { ...m, ipfsUrl: data.ipfsUrl, uploading: false } : m));
+    } catch (err) {
+      setMedia((m) =>
+        m ? { ...m, uploading: false, uploadError: err instanceof Error ? err.message : "Upload failed" } : m,
+      );
+    }
   };
 
   const onSubmit = async (e: React.FormEvent) => {
@@ -92,6 +117,12 @@ export default function CreateCoin() {
 
     if (!name.trim() || !ticker.trim()) {
       setError("Name and ticker are required.");
+      setStatus("error");
+      return;
+    }
+    // wait for the image to finish pinning to IPFS
+    if (media?.uploading) {
+      setError("Hold on — your image is still uploading to IPFS.");
       setStatus("error");
       return;
     }
@@ -132,8 +163,8 @@ export default function CreateCoin() {
         name: name.trim(),
         ticker,
         description: desc.trim(),
-        // uploaded files are local previews — on-chain image hosting comes later
-        imageUrl: /^https?:\/\//.test(website.trim()) ? website.trim() : "",
+        // permanent IPFS URL from Pinata (falls back to a website image URL)
+        imageUrl: media?.ipfsUrl ?? (/^https?:\/\//.test(website.trim()) ? website.trim() : ""),
       };
 
       // fires the wallet confirmation modal
@@ -295,12 +326,19 @@ export default function CreateCoin() {
                       }`}
                     >
                       {media ? (
-                        media.isVideo ? (
-                          <video src={media.url} className="h-28 w-28 rounded-xl object-cover" muted autoPlay loop />
-                        ) : (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img src={media.url} alt="Upload preview" className="h-28 w-28 rounded-xl object-cover" />
-                        )
+                        <div className="relative h-28 w-28">
+                          {media.isVideo ? (
+                            <video src={media.preview} className="h-28 w-28 rounded-xl object-cover" muted autoPlay loop />
+                          ) : (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img src={media.preview} alt="Upload preview" className="h-28 w-28 rounded-xl object-cover" />
+                          )}
+                          {media.uploading && (
+                            <div className="absolute inset-0 flex items-center justify-center rounded-xl bg-black/60">
+                              <span className="h-6 w-6 animate-spin rounded-full border-2 border-white/40 border-t-white" />
+                            </div>
+                          )}
+                        </div>
                       ) : (
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="h-9 w-9 text-white/30" aria-hidden>
                           <rect x="3" y="3" width="18" height="18" rx="2" />
@@ -309,7 +347,15 @@ export default function CreateCoin() {
                         </svg>
                       )}
                       <p className="mt-4 text-sm font-medium text-white/70">{media ? "Change file" : "Select image or video"}</p>
-                      <p className="mt-1 text-xs text-white/30">Drag & drop or click to browse</p>
+                      {media?.uploading ? (
+                        <p className="mt-1 text-xs text-ton-bright">Uploading to IPFS…</p>
+                      ) : media?.ipfsUrl ? (
+                        <p className="mt-1 text-xs text-ton-bright">✓ Stored on IPFS</p>
+                      ) : media?.uploadError ? (
+                        <p className="mt-1 text-xs text-amber-300">{media.uploadError}</p>
+                      ) : (
+                        <p className="mt-1 text-xs text-white/30">Drag & drop or click to browse</p>
+                      )}
                       <input ref={fileRef} type="file" accept="image/*,video/*" className="hidden" onChange={(e) => handleFile(e.target.files?.[0])} />
                     </div>
                   </div>
@@ -340,13 +386,18 @@ export default function CreateCoin() {
                   <div className="pt-2">
                     <button
                       type="submit"
-                      disabled={status === "deploying"}
+                      disabled={status === "deploying" || media?.uploading}
                       className="flex w-full items-center justify-center gap-2 rounded-xl bg-ton py-3.5 font-display font-bold text-white transition hover:bg-ton-bright active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-70"
                     >
                       {status === "deploying" ? (
                         <>
                           <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
                           Deploying your token...
+                        </>
+                      ) : media?.uploading ? (
+                        <>
+                          <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
+                          Uploading image...
                         </>
                       ) : !address ? (
                         "Connect Wallet to Create"
@@ -375,10 +426,10 @@ export default function CreateCoin() {
               <div className="mx-auto flex h-24 w-24 items-center justify-center overflow-hidden rounded-full bg-[#0A1220]">
                 {media ? (
                   media.isVideo ? (
-                    <video src={media.url} className="h-full w-full object-cover" muted autoPlay loop />
+                    <video src={media.preview} className="h-full w-full object-cover" muted autoPlay loop />
                   ) : (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={media.url} alt="" className="h-full w-full object-cover" />
+                    <img src={media.preview} alt="" className="h-full w-full object-cover" />
                   )
                 ) : (
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" className="h-8 w-8 text-white/20" aria-hidden>
