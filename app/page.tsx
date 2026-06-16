@@ -293,14 +293,14 @@ function Hero({ launches, loading }: { launches: TokenInfo[]; loading: boolean }
       <div className="grid-bg pointer-events-none absolute inset-0 opacity-40" />
 
       {/* ===== content: 3 columns ===== */}
-      <div className="relative z-10 mx-auto grid max-w-[1500px] items-center gap-8 px-6 pb-6 pt-6 lg:grid-cols-[35fr,30fr,35fr] lg:pt-4">
+      <div className="relative z-10 mx-auto grid max-w-[1500px] items-center gap-6 px-6 pb-4 pt-4 lg:grid-cols-[35fr,30fr,35fr] lg:pt-2">
         {/* LEFT column */}
         <div>
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.05 }}
-            className="mb-7 inline-flex items-center gap-2.5 rounded-full border border-ton/25 bg-space-800/70 px-4 py-2 text-xs font-bold uppercase tracking-[0.14em] text-white/85"
+            className="mb-4 inline-flex items-center gap-2.5 rounded-full border border-ton/25 bg-space-800/70 px-4 py-2 text-xs font-bold uppercase tracking-[0.14em] text-white/85"
           >
             <TonShield className="h-4 w-4" />
             Built on TON
@@ -336,7 +336,7 @@ function Hero({ launches, loading }: { launches: TokenInfo[]; loading: boolean }
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.45 }}
-            className="mt-6 max-w-sm text-base leading-relaxed text-white/55"
+            className="mt-4 max-w-sm text-base leading-relaxed text-white/55"
           >
             The fastest and easiest way to launch, trade and discover memecoins on TON.
           </motion.p>
@@ -346,7 +346,7 @@ function Hero({ launches, loading }: { launches: TokenInfo[]; loading: boolean }
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.55 }}
-            className="mt-8"
+            className="mt-6"
           >
             <MotionLink
               href="/create"
@@ -372,7 +372,7 @@ function Hero({ launches, loading }: { launches: TokenInfo[]; loading: boolean }
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.7 }}
-            className="mt-10 grid grid-cols-2 gap-x-6 gap-y-7"
+            className="mt-6 grid grid-cols-2 gap-x-6 gap-y-4"
           >
             {FEATURES.map((f) => (
               <div key={f.title}>
@@ -523,7 +523,7 @@ function TrendingLaunches({
   });
 
   return (
-    <section id="trending" className="scroll-mt-20 bg-[#060A12] px-6 pb-16 pt-8">
+    <section id="trending" className="scroll-mt-20 bg-[#060A12] px-6 pb-16 pt-4">
       <div className="mx-auto max-w-7xl">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <h2 className="font-display text-2xl font-bold tracking-tight">🔥 Trending Launches</h2>
