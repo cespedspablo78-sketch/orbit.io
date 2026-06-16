@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRef, useState } from "react";
 import { TonConnectButton, useTonAddress, useTonConnectUI } from "@tonconnect/ui-react";
 import { Address, type Sender, type SenderArguments } from "@ton/core";
-import { TonClient } from "@ton/ton";
+import { getTonClient } from "@/lib/tonClient";
 import {
   VYNX_ADDRESSES,
   VynxFactory,
@@ -18,8 +18,6 @@ import {
 /**
  * /create — deploys a real VYNX coin on TON testnet via the SDK + TON Connect.
  */
-
-const TESTNET_ENDPOINT = "https://testnet.toncenter.com/api/v2/jsonRPC";
 
 const PlanetMark = ({ className = "h-7 w-7" }: { className?: string }) => (
   <svg viewBox="0 0 40 40" fill="none" className={className} aria-hidden>
@@ -153,10 +151,7 @@ export default function CreateCoin() {
         },
       };
 
-      const client = new TonClient({
-        endpoint: TESTNET_ENDPOINT,
-        apiKey: process.env.NEXT_PUBLIC_TONCENTER_KEY,
-      });
+      const client = await getTonClient();
       const factory = client.open(VynxFactory.fromAddress(VYNX_ADDRESSES.factory));
 
       const meta: CoinMeta = {
@@ -270,9 +265,17 @@ export default function CreateCoin() {
                     <path d="M7 17 17 7M8 7h9v9" />
                   </svg>
                 </a>
+                {result?.address && (
+                  <Link
+                    href={`/token/${result.address}`}
+                    className="ml-3 rounded-xl border border-ton/30 px-6 py-3 text-sm font-bold text-ton-bright transition hover:bg-ton/10"
+                  >
+                    Open token page
+                  </Link>
+                )}
                 <button
                   onClick={reset}
-                  className="ml-3 rounded-xl border border-white/10 px-6 py-3 text-sm font-bold text-white/70 transition hover:border-ton/40 hover:text-white"
+                  className="ml-3 mt-3 rounded-xl border border-white/10 px-6 py-3 text-sm font-bold text-white/70 transition hover:border-ton/40 hover:text-white"
                 >
                   Create another
                 </button>
