@@ -294,14 +294,12 @@ function Planet() {
   );
 }
 
-/* ---------- hero group — shifts right on wide screens ---------- */
+/* ---------- hero group — centered (mascot sits in the middle column) ---------- */
 function HeroGroup({ children }: { children: React.ReactNode }) {
   const ref = useRef<THREE.Group>(null);
-  useFrame(({ viewport }) => {
+  useFrame(() => {
     if (!ref.current) return;
-    // 0.25 = exact center of the right column (75% of screen width)
-    const target = viewport.width > 8 ? viewport.width * 0.25 : 0;
-    ref.current.position.x += (target - ref.current.position.x) * 0.08;
+    ref.current.position.x += (0 - ref.current.position.x) * 0.08;
   });
   return <group ref={ref}>{children}</group>;
 }

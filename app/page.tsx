@@ -1,10 +1,12 @@
 "use client";
 
-import { animate, motion, useInView } from "framer-motion";
+import { motion } from "framer-motion";
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
+import { fromNano } from "@ton/core";
 import Mascot from "@/components/Mascot";
+import { getLaunches, getTotalCoins, type TokenInfo } from "@/lib/vynxIndexer";
 
 const MotionLink = motion(Link);
 
@@ -129,10 +131,12 @@ const ICONS = {
 } as const;
 
 export default function Home() {
+  const { launches, totalCoins, loading } = useLaunches();
   return (
     <main className="font-sans">
       <Nav />
-      <Hero />
+      <Hero launches={launches} loading={loading} />
+      <TrendingLaunches launches={launches} totalCoins={totalCoins} loading={loading} />
       <HowItWorks />
       <Roadmap />
       <Footer />
@@ -215,28 +219,69 @@ const FEATURES = [
   { icon: ICONS.users, title: "Community First", desc: "Built for degens, by degens." },
 ];
 
-const STATS: { icon: string; to: number; label: string; format: (n: number) => string }[] = [
-  { icon: ICONS.rocket, to: 12543, label: "Coins Launched", format: (n) => Math.round(n).toLocaleString("en-US") },
-  { icon: ICONS.users, to: 78932, label: "Traders", format: (n) => Math.round(n).toLocaleString("en-US") },
-  { icon: ICONS.dollar, to: 24.6, label: "Total Volume", format: (n) => `$${n.toFixed(1)}M` },
-  { icon: ICONS.wallet, to: 58341, label: "Holders", format: (n) => Math.round(n).toLocaleString("en-US") },
-];
+/* ---------- formatting helpers ---------- */
+function fmtTon(nano: bigint, dp = 2): string {
+  const n = Number(fromNano(nano));
+  if (n === 0) return "0";
+  if (n < 0.0001) return n.toExponential(1);
+  if (n >= 1000) return `${(n / 1000).toLocaleString("en-US", { maximumFractionDigits: 1 })}K`;
+  return n.toLocaleString("en-US", { maximumFractionDigits: dp });
+}
+function timeAgo(unix: number): string {
+  const s = Math.max(0, Math.floor(Date.now() / 1000 - unix));
+  if (s < 60) return `${s}s ago`;
+  const m = Math.floor(s / 60);
+  if (m < 60) return `${m}m ago`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h}h ago`;
+  return `${Math.floor(h / 24)}d ago`;
+}
+const shortAddr = (a: string | null) => (a && a.length > 12 ? `${a.slice(0, 4)}…${a.slice(-4)}` : a ?? "—");
 
-function CountUp({ to, format }: { to: number; format: (n: number) => string }) {
-  const ref = useRef<HTMLSpanElement>(null);
-  const inView = useInView(ref, { once: true, margin: "-40px" });
-  const [val, setVal] = useState(0);
+/* ---------- live on-chain launches (shared by hero panel + trending table) ---------- */
+function useLaunches() {
+  const [launches, setLaunches] = useState<TokenInfo[]>([]);
+  const [totalCoins, setTotalCoins] = useState<number | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!inView) return;
-    const controls = animate(0, to, { duration: 1.8, ease: [0.16, 1, 0.3, 1], onUpdate: setVal });
-    return () => controls.stop();
-  }, [inView, to]);
+    let alive = true;
+    const fetchAll = async () => {
+      try {
+        const [list, total] = await Promise.all([getLaunches(12), getTotalCoins().catch(() => null)]);
+        if (!alive) return;
+        setLaunches(list);
+        if (total !== null) setTotalCoins(total);
+      } catch (e) {
+        console.error("launches fetch failed:", e);
+      } finally {
+        if (alive) setLoading(false);
+      }
+    };
+    fetchAll();
+    const id = setInterval(fetchAll, 30000); // refetch every 30s
+    return () => {
+      alive = false;
+      clearInterval(id);
+    };
+  }, []);
 
-  return <span ref={ref}>{format(val)}</span>;
+  return { launches, totalCoins, loading };
 }
 
-function Hero() {
+function CoinImg({ token, className = "" }: { token: TokenInfo; className?: string }) {
+  const [ok, setOk] = useState(true);
+  return ok && token.imageUrl ? (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img src={token.imageUrl} alt={token.name} onError={() => setOk(false)} className={`object-cover ${className}`} />
+  ) : (
+    <div className={`flex items-center justify-center bg-[#0A1220] text-sm font-bold text-ton-bright ${className}`}>
+      {token.ticker?.[0] ?? "?"}
+    </div>
+  );
+}
+
+function Hero({ launches, loading }: { launches: TokenInfo[]; loading: boolean }) {
   return (
     <section id="home" className="relative min-h-screen overflow-hidden bg-space-950 pt-16">
       {/* ===== real-time 3D scene (stars, nebula, fog, coins, rings, platform) ===== */}
@@ -246,15 +291,15 @@ function Hero() {
       {/* subtle grid over the scene */}
       <div className="grid-bg pointer-events-none absolute inset-0 opacity-40" />
 
-      {/* ===== content ===== */}
-      <div className="relative z-10 mx-auto grid max-w-[1400px] items-center gap-10 px-6 pb-16 pt-10 lg:grid-cols-2 lg:pt-6">
-        {/* left column */}
+      {/* ===== content: 3 columns ===== */}
+      <div className="relative z-10 mx-auto grid max-w-[1500px] items-center gap-8 px-6 pb-16 pt-10 lg:grid-cols-[35fr,30fr,35fr] lg:pt-6">
+        {/* LEFT column */}
         <div>
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.05 }}
-            className="mb-8 inline-flex items-center gap-2.5 rounded-full border border-ton/25 bg-space-800/70 px-4 py-2 text-xs font-bold uppercase tracking-[0.14em] text-white/85"
+            className="mb-7 inline-flex items-center gap-2.5 rounded-full border border-ton/25 bg-space-800/70 px-4 py-2 text-xs font-bold uppercase tracking-[0.14em] text-white/85"
           >
             <TonShield className="h-4 w-4" />
             Built on TON
@@ -263,12 +308,12 @@ function Hero() {
 
           <h1
             className="font-sans font-black text-white"
-            style={{ fontSize: "clamp(3.2rem, 6vw, 5.5rem)", letterSpacing: "-3px", lineHeight: 1.0 }}
+            style={{ fontSize: "clamp(2.5rem, 4vw, 4rem)", letterSpacing: "-2px", lineHeight: 1.02 }}
           >
             {["Launch", "Memecoins"].map((line, i) => (
               <motion.span
                 key={line}
-                initial={{ opacity: 0, y: 26 }}
+                initial={{ opacity: 0, y: 24 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.15 + i * 0.1, ease: [0.21, 0.6, 0.35, 1] }}
                 className="block"
@@ -277,7 +322,7 @@ function Hero() {
               </motion.span>
             ))}
             <motion.span
-              initial={{ opacity: 0, y: 26 }}
+              initial={{ opacity: 0, y: 24 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.35, ease: [0.21, 0.6, 0.35, 1] }}
               className="block"
@@ -290,24 +335,23 @@ function Hero() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.45 }}
-            className="mt-7 max-w-md text-[1.1rem] leading-relaxed text-white/55"
+            className="mt-6 max-w-sm text-base leading-relaxed text-white/55"
           >
             The fastest and easiest way to launch, trade and discover memecoins on TON.
           </motion.p>
 
-          {/* buttons */}
           <motion.div
             id="launch"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.55 }}
-            className="mt-9 flex flex-wrap gap-4"
+            className="mt-8"
           >
             <MotionLink
               href="/create"
-              whileHover={{ scale: 1.05, boxShadow: "0 0 60px rgba(0,152,234,0.7)" }}
+              whileHover={{ scale: 1.04, boxShadow: "0 0 60px rgba(0,152,234,0.7)" }}
               whileTap={{ scale: 0.96 }}
-              className="relative flex items-center gap-2.5 overflow-hidden rounded-xl bg-ton px-10 py-4 font-display text-lg font-bold shadow-glow-md"
+              className="relative inline-flex items-center gap-2.5 overflow-hidden rounded-xl bg-ton px-9 py-3.5 font-display text-lg font-bold shadow-glow-md"
             >
               <motion.span
                 aria-hidden
@@ -322,12 +366,12 @@ function Hero() {
             </MotionLink>
           </motion.div>
 
-          {/* feature pills — plain text columns, no cards */}
+          {/* feature pills */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.7 }}
-            className="mt-12 grid grid-cols-2 gap-x-6 gap-y-8 sm:grid-cols-4"
+            className="mt-10 grid grid-cols-2 gap-x-6 gap-y-7"
           >
             {FEATURES.map((f) => (
               <div key={f.title}>
@@ -337,37 +381,249 @@ function Hero() {
               </div>
             ))}
           </motion.div>
-
-          {/* stats bar */}
-          <motion.div
-            initial={{ opacity: 0, y: 24 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, delay: 0.85 }}
-            className="mt-10 grid grid-cols-2 gap-y-6 rounded-2xl border border-white/10 bg-space-900/70 px-6 py-6 backdrop-blur sm:grid-cols-4"
-          >
-            {STATS.map((s) => (
-              <div key={s.label} className="flex items-center gap-3">
-                <Icon d={s.icon} className="h-6 w-6 shrink-0 text-ton-bright" />
-                <div>
-                  <div className="font-display text-[1.65rem] font-bold leading-tight">
-                    <CountUp to={s.to} format={s.format} />
-                  </div>
-                  <div className="text-xs text-white/40">{s.label}</div>
-                </div>
-              </div>
-            ))}
-          </motion.div>
         </div>
 
-        {/* right column — THE ORBITER */}
+        {/* MIDDLE column — THE ORBITER */}
         <motion.div
           initial={{ opacity: 0, scale: 0.94 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.9, delay: 0.3 }}
-          className="relative"
+          className="relative order-first lg:order-none"
         >
           <Mascot />
         </motion.div>
+
+        {/* RIGHT column — LIVE LAUNCHES */}
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, delay: 0.4 }}
+        >
+          <LiveLaunches launches={launches} loading={loading} />
+        </motion.div>
+      </div>
+    </section>
+  );
+}
+
+/* =================== LIVE LAUNCHES PANEL =================== */
+function LiveLaunches({ launches, loading }: { launches: TokenInfo[]; loading: boolean }) {
+  const rows = launches.slice(0, 4);
+  return (
+    <div className="rounded-2xl border border-ton/20 bg-space-900/90 p-5 backdrop-blur">
+      <div className="flex items-center justify-between">
+        <span className="text-xs font-bold uppercase tracking-[0.18em] text-white/60">Live Launches</span>
+        <span className="flex items-center gap-1.5 text-xs font-bold text-emerald-400">
+          <span className="relative flex h-2 w-2">
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400/70" />
+            <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-400" />
+          </span>
+          LIVE
+        </span>
+      </div>
+
+      <div className="mt-5 space-y-4">
+        {loading ? (
+          Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="flex items-center gap-3">
+              <div className="shimmer h-10 w-10 rounded-full" />
+              <div className="flex-1 space-y-2">
+                <div className="shimmer h-3 w-2/3 rounded" />
+                <div className="shimmer h-2 w-full rounded" />
+              </div>
+            </div>
+          ))
+        ) : rows.length === 0 ? (
+          <div className="py-8 text-center">
+            <div className="text-3xl">🚀</div>
+            <p className="mt-3 font-display font-bold">Be the first launch</p>
+            <p className="mt-1 text-xs text-white/45">No tokens yet — start the orbit.</p>
+            <Link href="/create" className="mt-4 inline-block rounded-xl bg-ton px-5 py-2.5 text-sm font-bold transition hover:bg-ton-bright">
+              + Create Coin
+            </Link>
+          </div>
+        ) : (
+          rows.map((t, i) => (
+            <motion.div
+              key={t.jetton}
+              initial={{ opacity: 0, x: 12 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.4, delay: i * 0.08 }}
+            >
+              <Link href={`/token/${t.jetton}`} className="group block">
+                <div className="flex items-center gap-3">
+                  <CoinImg token={t} className="h-10 w-10 shrink-0 rounded-full" />
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-1">
+                      <span className="truncate text-sm font-bold group-hover:text-ton-bright">{t.name}</span>
+                      <svg viewBox="0 0 24 24" className="h-3.5 w-3.5 shrink-0 text-ton-bright" fill="currentColor" aria-hidden>
+                        <path d="M12 2l2.4 1.8 3-.3 1 2.8 2.5 1.6-1 2.8 1 2.8-2.5 1.6-1 2.8-3-.3L12 22l-2.4-1.8-3 .3-1-2.8L3.1 14l1-2.8-1-2.8 2.5-1.6 1-2.8 3 .3L12 2zm-1.2 12.9 5-5-1.4-1.4-3.6 3.6-1.6-1.6-1.4 1.4 3 3z" />
+                      </svg>
+                    </div>
+                    <div className="text-xs text-white/40">Joined {timeAgo(t.at)}</div>
+                  </div>
+                  <div className="shrink-0 text-right">
+                    <div className="text-sm font-bold">{fmtTon(t.mcNano)} <span className="text-xs text-white/40">TON</span></div>
+                    <div className="text-xs font-bold text-emerald-400">{t.progress.toFixed(0)}%</div>
+                  </div>
+                </div>
+                <div className="mt-2 h-1 overflow-hidden rounded-full bg-white/5">
+                  <div className="h-full rounded-full bg-ton" style={{ width: `${t.progress}%` }} />
+                </div>
+              </Link>
+            </motion.div>
+          ))
+        )}
+      </div>
+
+      {rows.length > 0 && (
+        <a href="#trending" className="mt-5 flex items-center justify-center gap-1.5 rounded-xl border border-white/10 py-2.5 text-sm font-medium text-white/60 transition hover:border-ton/40 hover:text-white">
+          View All Launches
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4" aria-hidden>
+            <path d="M5 12h14M13 6l6 6-6 6" />
+          </svg>
+        </a>
+      )}
+    </div>
+  );
+}
+
+/* =================== TRENDING LAUNCHES TABLE =================== */
+type SortKey = "trending" | "new" | "gainers" | "all";
+const TABS: { key: SortKey; label: string }[] = [
+  { key: "trending", label: "Trending" },
+  { key: "new", label: "New" },
+  { key: "gainers", label: "Top Gainers" },
+  { key: "all", label: "View All" },
+];
+
+function TrendingLaunches({
+  launches,
+  totalCoins,
+  loading,
+}: {
+  launches: TokenInfo[];
+  totalCoins: number | null;
+  loading: boolean;
+}) {
+  const [tab, setTab] = useState<SortKey>("trending");
+
+  const sorted = [...launches].sort((a, b) => {
+    switch (tab) {
+      case "new":
+        return b.at - a.at;
+      case "gainers":
+      case "trending":
+        return b.progress - a.progress;
+      default:
+        return b.at - a.at;
+    }
+  });
+
+  return (
+    <section id="trending" className="scroll-mt-20 bg-space-950 px-6 py-16">
+      <div className="mx-auto max-w-[1500px]">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <h2 className="font-display text-2xl font-bold tracking-tight">🔥 Trending Launches</h2>
+          <div className="flex flex-wrap gap-1 rounded-xl border border-white/5 bg-space-900 p-1">
+            {TABS.map((t) => (
+              <button
+                key={t.key}
+                onClick={() => setTab(t.key)}
+                className={`rounded-lg px-3.5 py-1.5 text-sm font-medium transition ${
+                  tab === t.key ? "bg-ton text-white" : "text-white/45 hover:text-white/80"
+                }`}
+              >
+                {t.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="mt-6 overflow-x-auto rounded-2xl border border-white/5 bg-space-900/60">
+          {loading ? (
+            <div className="space-y-3 p-6">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="shimmer h-12 rounded-xl" />
+              ))}
+            </div>
+          ) : sorted.length === 0 ? (
+            <div className="flex flex-col items-center px-6 py-20 text-center">
+              <div className="text-4xl">🪐</div>
+              <h3 className="mt-5 font-display text-xl font-bold">No tokens launched yet</h3>
+              <p className="mt-2 text-sm text-white/45">
+                Be the first to launch on VYNX{totalCoins !== null ? ` · ${totalCoins} created on-chain` : ""}
+              </p>
+              <Link
+                href="/create"
+                className="mt-7 inline-flex items-center gap-2 rounded-xl bg-ton px-7 py-3.5 font-display font-bold transition hover:bg-ton-bright active:scale-[0.99]"
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5" aria-hidden>
+                  <path d="M12 5v14M5 12h14" />
+                </svg>
+                Launch the first token →
+              </Link>
+            </div>
+          ) : (
+            <table className="w-full min-w-[820px] text-sm">
+              <thead>
+                <tr className="text-left text-xs uppercase tracking-wider text-white/30">
+                  <th className="px-4 py-4 font-medium">#</th>
+                  <th className="py-4 font-medium">Token</th>
+                  <th className="py-4 font-medium">Creator</th>
+                  <th className="py-4 font-medium">Launched</th>
+                  <th className="py-4 font-medium">Market Cap</th>
+                  <th className="py-4 font-medium">Progress</th>
+                  <th className="py-4 font-medium">Reserve</th>
+                  <th className="py-4 pr-4 font-medium" />
+                </tr>
+              </thead>
+              <tbody>
+                {sorted.map((t, i) => (
+                  <motion.tr
+                    key={t.jetton}
+                    initial={{ opacity: 0, y: 10 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true, margin: "-40px" }}
+                    transition={{ duration: 0.4, delay: (i % 8) * 0.05 }}
+                    className="border-t border-white/5 transition-colors hover:bg-white/[0.02]"
+                  >
+                    <td className="px-4 py-4 text-white/30">{i + 1}</td>
+                    <td className="py-4">
+                      <div className="flex items-center gap-3">
+                        <CoinImg token={t} className="h-9 w-9 shrink-0 rounded-full" />
+                        <div>
+                          <div className="font-bold">{t.name}</div>
+                          <div className="text-xs text-white/30">${t.ticker}</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="py-4 text-white/50">{shortAddr(t.creator)}</td>
+                    <td className="py-4 text-white/50">{timeAgo(t.at)}</td>
+                    <td className="py-4 font-display font-semibold">{fmtTon(t.mcNano)} TON</td>
+                    <td className="py-4">
+                      <div className="flex items-center gap-2">
+                        <div className="h-1.5 w-20 overflow-hidden rounded-full bg-white/5">
+                          <div className="h-full rounded-full bg-ton" style={{ width: `${t.progress}%` }} />
+                        </div>
+                        <span className="text-xs text-white/50">{t.progress.toFixed(0)}%</span>
+                      </div>
+                    </td>
+                    <td className="py-4 text-white/60">{fmtTon(t.reserveNano)} TON</td>
+                    <td className="py-4 pr-4 text-right">
+                      <Link
+                        href={`/token/${t.jetton}`}
+                        className="rounded-lg border border-ton/30 px-4 py-1.5 text-xs font-bold text-ton-bright transition hover:bg-ton/10"
+                      >
+                        View
+                      </Link>
+                    </td>
+                  </motion.tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
       </div>
     </section>
   );
