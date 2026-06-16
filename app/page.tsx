@@ -284,7 +284,7 @@ function CoinImg({ token, className = "" }: { token: TokenInfo; className?: stri
 
 function Hero({ launches, loading }: { launches: TokenInfo[]; loading: boolean }) {
   return (
-    <section id="home" className="relative min-h-screen overflow-hidden bg-space-950 pt-16">
+    <section id="home" className="relative overflow-hidden bg-space-950 pt-16">
       {/* ===== real-time 3D scene (stars, nebula, fog, coins, rings, platform) ===== */}
       <div className="absolute inset-0">
         <Scene3D />
@@ -293,7 +293,7 @@ function Hero({ launches, loading }: { launches: TokenInfo[]; loading: boolean }
       <div className="grid-bg pointer-events-none absolute inset-0 opacity-40" />
 
       {/* ===== content: 3 columns ===== */}
-      <div className="relative z-10 mx-auto grid max-w-[1500px] items-center gap-8 px-6 pb-16 pt-10 lg:grid-cols-[35fr,30fr,35fr] lg:pt-6">
+      <div className="relative z-10 mx-auto grid max-w-[1500px] items-center gap-8 px-6 pb-6 pt-6 lg:grid-cols-[35fr,30fr,35fr] lg:pt-4">
         {/* LEFT column */}
         <div>
           <motion.div
@@ -523,7 +523,7 @@ function TrendingLaunches({
   });
 
   return (
-    <section id="trending" className="scroll-mt-20 bg-[#060A12] px-6 py-20">
+    <section id="trending" className="scroll-mt-20 bg-[#060A12] px-6 pb-16 pt-8">
       <div className="mx-auto max-w-7xl">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <h2 className="font-display text-2xl font-bold tracking-tight">🔥 Trending Launches</h2>

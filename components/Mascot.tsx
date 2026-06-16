@@ -17,7 +17,7 @@ export default function Mascot() {
   const [hasRender, setHasRender] = useState(true);
 
   return (
-    <div className="relative mx-auto h-[600px] w-full max-w-[640px] sm:h-[720px]">
+    <div className="relative mx-auto h-[380px] w-full max-w-[520px] sm:h-[460px]">
       {/* energy glow behind the character — dialed back for a calmer hero */}
       <motion.div
         animate={{ opacity: [0.28, 0.6, 0.28] }}
