@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import dynamic from "next/dynamic";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { fromNano } from "@ton/core";
 import Mascot from "@/components/Mascot";
@@ -507,6 +508,7 @@ function TrendingLaunches({
   loading: boolean;
 }) {
   const [tab, setTab] = useState<SortKey>("trending");
+  const router = useRouter();
 
   const sorted = [...launches].sort((a, b) => {
     switch (tab) {
@@ -521,8 +523,8 @@ function TrendingLaunches({
   });
 
   return (
-    <section id="trending" className="scroll-mt-20 bg-space-950 px-6 py-16">
-      <div className="mx-auto max-w-[1500px]">
+    <section id="trending" className="scroll-mt-20 bg-[#060A12] px-6 py-20">
+      <div className="mx-auto max-w-7xl">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <h2 className="font-display text-2xl font-bold tracking-tight">🔥 Trending Launches</h2>
           <div className="flex flex-wrap gap-1 rounded-xl border border-white/5 bg-space-900 p-1">
@@ -540,7 +542,7 @@ function TrendingLaunches({
           </div>
         </div>
 
-        <div className="mt-6 overflow-x-auto rounded-2xl border border-white/5 bg-space-900/60">
+        <div className="mt-6 overflow-x-auto rounded-2xl border border-white/5 bg-space-950/60">
           {loading ? (
             <div className="space-y-3 p-6">
               {Array.from({ length: 4 }).map((_, i) => (
@@ -549,7 +551,7 @@ function TrendingLaunches({
             </div>
           ) : sorted.length === 0 ? (
             <div className="flex flex-col items-center px-6 py-20 text-center">
-              <div className="text-4xl">🪐</div>
+              <div className="text-5xl">🚀</div>
               <h3 className="mt-5 font-display text-xl font-bold">No tokens launched yet</h3>
               <p className="mt-2 text-sm text-white/45">
                 Be the first to launch on VYNX{totalCoins !== null ? ` · ${totalCoins} created on-chain` : ""}
@@ -561,20 +563,20 @@ function TrendingLaunches({
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5" aria-hidden>
                   <path d="M12 5v14M5 12h14" />
                 </svg>
-                Launch the first token →
+                Create Coin
               </Link>
             </div>
           ) : (
-            <table className="w-full min-w-[820px] text-sm">
+            <table className="w-full text-sm">
               <thead>
                 <tr className="text-left text-xs uppercase tracking-wider text-white/30">
                   <th className="px-4 py-4 font-medium">#</th>
                   <th className="py-4 font-medium">Token</th>
-                  <th className="py-4 font-medium">Creator</th>
-                  <th className="py-4 font-medium">Launched</th>
+                  <th className="hidden py-4 font-medium md:table-cell">Creator</th>
+                  <th className="hidden py-4 font-medium md:table-cell">Launched</th>
                   <th className="py-4 font-medium">Market Cap</th>
-                  <th className="py-4 font-medium">Progress</th>
-                  <th className="py-4 font-medium">Reserve</th>
+                  <th className="hidden py-4 font-medium lg:table-cell">Progress</th>
+                  <th className="hidden py-4 font-medium lg:table-cell">Reserve</th>
                   <th className="py-4 pr-4 font-medium" />
                 </tr>
               </thead>
@@ -586,22 +588,37 @@ function TrendingLaunches({
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true, margin: "-40px" }}
                     transition={{ duration: 0.4, delay: (i % 8) * 0.05 }}
-                    className="border-t border-white/5 transition-colors hover:bg-white/[0.02]"
+                    onClick={() => router.push(`/token/${t.jetton}`)}
+                    className="cursor-pointer border-t border-white/5 transition-colors hover:bg-white/[0.03]"
                   >
                     <td className="px-4 py-4 text-white/30">{i + 1}</td>
                     <td className="py-4">
                       <div className="flex items-center gap-3">
                         <CoinImg token={t} className="h-9 w-9 shrink-0 rounded-full" />
-                        <div>
-                          <div className="font-bold">{t.name}</div>
+                        <div className="min-w-0">
+                          <div className="truncate font-bold">{t.name}</div>
                           <div className="text-xs text-white/30">${t.ticker}</div>
                         </div>
                       </div>
                     </td>
-                    <td className="py-4 text-white/50">{shortAddr(t.creator)}</td>
-                    <td className="py-4 text-white/50">{timeAgo(t.at)}</td>
+                    <td className="hidden py-4 md:table-cell">
+                      {t.creator ? (
+                        <a
+                          href={`https://testnet.tonscan.org/address/${t.creator}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={(e) => e.stopPropagation()}
+                          className="text-white/50 transition hover:text-ton-bright"
+                        >
+                          {shortAddr(t.creator)}
+                        </a>
+                      ) : (
+                        <span className="text-white/40">—</span>
+                      )}
+                    </td>
+                    <td className="hidden py-4 text-white/50 md:table-cell">{timeAgo(t.at)}</td>
                     <td className="py-4 font-display font-semibold">{fmtTon(t.mcNano)} TON</td>
-                    <td className="py-4">
+                    <td className="hidden py-4 lg:table-cell">
                       <div className="flex items-center gap-2">
                         <div className="h-1.5 w-20 overflow-hidden rounded-full bg-white/5">
                           <div className="h-full rounded-full bg-ton" style={{ width: `${t.progress}%` }} />
@@ -609,10 +626,11 @@ function TrendingLaunches({
                         <span className="text-xs text-white/50">{t.progress.toFixed(0)}%</span>
                       </div>
                     </td>
-                    <td className="py-4 text-white/60">{fmtTon(t.reserveNano)} TON</td>
+                    <td className="hidden py-4 text-white/60 lg:table-cell">{fmtTon(t.reserveNano)} TON</td>
                     <td className="py-4 pr-4 text-right">
                       <Link
                         href={`/token/${t.jetton}`}
+                        onClick={(e) => e.stopPropagation()}
                         className="rounded-lg border border-ton/30 px-4 py-1.5 text-xs font-bold text-ton-bright transition hover:bg-ton/10"
                       >
                         View
