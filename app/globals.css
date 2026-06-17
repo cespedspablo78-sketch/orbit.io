@@ -45,3 +45,20 @@ body {
   background-size: 56px 56px;
   mask-image: radial-gradient(ellipse 75% 75% at 50% 20%, black 0%, transparent 100%);
 }
+
+/* subtle dashboard atmosphere grid */
+.vynx-grid {
+  background-image: linear-gradient(rgba(0, 152, 234, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 152, 234, 0.03) 1px, transparent 1px);
+  background-size: 60px 60px;
+  -webkit-mask-image: radial-gradient(ellipse 85% 55% at 50% 25%, black 0%, transparent 95%);
+  mask-image: radial-gradient(ellipse 85% 55% at 50% 25%, black 0%, transparent 95%);
+}
+
+/* gradient wordmark for section headings */
+.text-gradient {
+  background: linear-gradient(180deg, #ffffff 35%, rgba(0, 152, 234, 0.7) 130%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}

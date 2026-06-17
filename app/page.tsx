@@ -3,7 +3,7 @@
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { fromNano } from "@ton/core";
 import { getLaunches, getTotalCoins, type TokenInfo } from "@/lib/vynxIndexer";
 
@@ -129,7 +129,12 @@ const ICONS = {
 export default function Home() {
   const { launches, totalCoins, loading } = useLaunches();
   return (
-    <main className="font-sans">
+    <main className="relative font-sans">
+      {/* VYNX atmosphere — radial gradients + subtle grid */}
+      <div className="pointer-events-none fixed inset-0 -z-10">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_45%_40%_at_88%_2%,rgba(0,152,234,0.08),transparent_60%),radial-gradient(ellipse_45%_45%_at_8%_98%,rgba(0,80,180,0.06),transparent_60%)]" />
+        <div className="vynx-grid absolute inset-0" />
+      </div>
       <Nav />
       <Hero launches={launches} totalCoins={totalCoins} loading={loading} />
       <TrendingLaunches launches={launches} totalCoins={totalCoins} loading={loading} />
@@ -279,7 +284,7 @@ function Hero({
   loading: boolean;
 }) {
   return (
-    <section id="home" className="bg-space-950 px-6 pt-24">
+    <section id="home" className="px-6 pt-24">
       <div className="mx-auto max-w-7xl">
         <StatsBar launches={launches} totalCoins={totalCoins} loading={loading} />
         <LiveLaunchesGrid launches={launches} loading={loading} />
@@ -288,49 +293,95 @@ function Hero({
   );
 }
 
+/* ---------- count-up on first load ---------- */
+function useCountUp(value: number | null, duration = 1100): number | null {
+  const [display, setDisplay] = useState(0);
+  const prev = useRef(0);
+  useEffect(() => {
+    if (value === null) return;
+    const start = prev.current;
+    const startT = performance.now();
+    let raf = 0;
+    const tick = (t: number) => {
+      const p = Math.min(1, (t - startT) / duration);
+      const eased = 1 - Math.pow(1 - p, 3);
+      setDisplay(start + (value - start) * eased);
+      if (p < 1) raf = requestAnimationFrame(tick);
+      else prev.current = value;
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [value, duration]);
+  return value === null ? null : display;
+}
+
+function Stat({ value, format, label }: { value: number | null; format: (n: number) => string; label: string }) {
+  const n = useCountUp(value);
+  return (
+    <div>
+      <div className="font-display text-2xl font-bold tabular-nums text-white sm:text-[1.75rem]">
+        {n === null ? "—" : format(n)}
+      </div>
+      <div className="mt-1 text-xs text-white/40">{label}</div>
+    </div>
+  );
+}
+
 /* =================== STATS BAR =================== */
 function StatsBar({
   launches,
   totalCoins,
-  loading,
 }: {
   launches: TokenInfo[];
   totalCoins: number | null;
   loading: boolean;
 }) {
   const hasData = launches.length > 0;
-  const totalReserve = launches.reduce((s, t) => s + t.reserveNano, 0n);
+  const totalReserve = Number(fromNano(launches.reduce((s, t) => s + t.reserveNano, 0n)));
   const today = launches.filter((t) => Date.now() / 1000 - t.at < 86400).length;
   const active = launches.filter((t) => !t.graduated).length;
 
-  const stats = [
-    { label: "Coins Launched", value: totalCoins !== null ? totalCoins.toLocaleString("en-US") : "—" },
-    { label: "Total Reserve", value: hasData ? `${fmtTon(totalReserve)} TON` : "—" },
-    { label: "Tokens Today", value: hasData ? String(today) : "—" },
-    { label: "Active", value: hasData ? String(active) : "—" },
+  const stats: { value: number | null; format: (n: number) => string; label: string }[] = [
+    { value: totalCoins, format: (n) => Math.round(n).toLocaleString("en-US"), label: "Coins Launched" },
+    {
+      value: hasData ? totalReserve : null,
+      format: (n) => `${n.toLocaleString("en-US", { maximumFractionDigits: 2 })} TON`,
+      label: "Total Reserve",
+    },
+    { value: hasData ? today : null, format: (n) => String(Math.round(n)), label: "Tokens Today" },
+    { value: hasData ? active : null, format: (n) => String(Math.round(n)), label: "Active" },
   ];
 
   return (
-    <div className="flex flex-col gap-5 rounded-2xl border border-white/[0.08] bg-[#0A1220] p-5 sm:flex-row sm:items-center sm:gap-8">
-      <div className="inline-flex shrink-0 items-center gap-2 rounded-full border border-ton/25 bg-ton/5 px-3.5 py-2 text-xs font-bold uppercase tracking-[0.14em] text-white/80">
-        <TonShield className="h-4 w-4" /> Built on TON
-      </div>
-      <div className="grid flex-1 grid-cols-2 gap-5 sm:grid-cols-4">
-        {stats.map((s) => (
-          <div key={s.label}>
-            <div className="font-display text-xl font-bold text-white sm:text-2xl">
-              {loading && !hasData && totalCoins === null ? "—" : s.value}
-            </div>
-            <div className="mt-0.5 text-xs text-white/40">{s.label}</div>
-          </div>
-        ))}
-      </div>
+    <div className="relative">
+      {/* soft glow behind the stats bar */}
+      <div className="pointer-events-none absolute -inset-x-10 -top-6 h-40 rounded-full bg-ton/10 blur-[80px]" />
+      <motion.div
+        initial={{ opacity: 0, y: 14 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+        className="group relative flex flex-col gap-5 rounded-2xl border border-ton/15 bg-gradient-to-br from-[#0A1525] to-[#060B14] p-6 transition-shadow hover:shadow-[0_0_40px_rgba(0,152,234,0.1)] sm:flex-row sm:items-center sm:gap-8"
+      >
+        <div className="inline-flex shrink-0 items-center gap-2 self-start rounded-full border border-ton/25 bg-ton/5 px-3.5 py-2 text-xs font-bold uppercase tracking-[0.14em] text-white/80 sm:self-auto">
+          <span className="relative flex h-4 w-4 items-center justify-center">
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-ton/40" />
+            <TonShield className="relative h-4 w-4" />
+          </span>
+          Built on TON
+        </div>
+        <div className="grid flex-1 grid-cols-2 gap-6 sm:grid-cols-4">
+          {stats.map((s) => (
+            <Stat key={s.label} value={s.value} format={s.format} label={s.label} />
+          ))}
+        </div>
+      </motion.div>
     </div>
   );
 }
 
 /* =================== MINI SPARKLINE (bonding curve shape) =================== */
 function MiniSparkline({ progress, className = "" }: { progress: number; className?: string }) {
+  const gid = useId();
   const W = 120;
   const H = 40;
   const pts = Array.from({ length: 21 }, (_, i) => {
@@ -346,13 +397,23 @@ function MiniSparkline({ progress, className = "" }: { progress: number; classNa
 
   return (
     <svg viewBox={`0 0 ${W} ${H}`} className={className} preserveAspectRatio="none" aria-hidden>
+      <defs>
+        <linearGradient id={`spark-line-${gid}`} x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stopColor="#0098EA" />
+          <stop offset="100%" stopColor="#33BBFF" />
+        </linearGradient>
+        <linearGradient id={`spark-fill-${gid}`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="rgba(0,152,234,0.2)" />
+          <stop offset="100%" stopColor="rgba(0,152,234,0)" />
+        </linearGradient>
+      </defs>
       {/* full faint curve */}
-      <path d={toPath(pts)} fill="none" stroke="rgba(51,187,255,0.25)" strokeWidth="1.5" vectorEffect="non-scaling-stroke" />
-      {/* progress portion: filled area + bright line */}
+      <path d={toPath(pts)} fill="none" stroke="rgba(51,187,255,0.18)" strokeWidth="1.5" vectorEffect="non-scaling-stroke" />
+      {/* progress portion: gradient area + gradient line */}
       {k > 0 && (
         <>
-          <path d={`${toPath(fill)} L${fill[k][0].toFixed(1)} ${H} L0 ${H} Z`} fill="rgba(0,152,234,0.18)" />
-          <path d={toPath(fill)} fill="none" stroke="#33BBFF" strokeWidth="2" vectorEffect="non-scaling-stroke" />
+          <path d={`${toPath(fill)} L${fill[k][0].toFixed(1)} ${H} L0 ${H} Z`} fill={`url(#spark-fill-${gid})`} />
+          <path d={toPath(fill)} fill="none" stroke={`url(#spark-line-${gid})`} strokeWidth="2.2" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
         </>
       )}
     </svg>
@@ -368,91 +429,101 @@ function VerifiedCheck() {
   );
 }
 
-function TokenCard({ t }: { t: TokenInfo }) {
+function TokenCard({ t, i }: { t: TokenInfo; i: number }) {
   return (
-    <Link
-      href={`/token/${t.jetton}`}
-      className="group flex flex-col rounded-2xl border border-white/[0.08] bg-[#0A1220] p-4 transition hover:border-ton/40"
+    <motion.div
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.45, delay: i * 0.05 }}
+      whileHover={{ y: -4 }}
     >
-      <div className="flex items-center gap-3">
-        <CoinImg token={t} className="h-10 w-10 shrink-0 rounded-full" />
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-1">
-            <span className="truncate text-sm font-bold group-hover:text-ton-bright">{t.name}</span>
-            <VerifiedCheck />
+      <Link
+        href={`/token/${t.jetton}`}
+        className="group flex h-full flex-col rounded-2xl border border-ton/15 bg-gradient-to-br from-[#0A1525] to-[#060B14] p-5 transition-all duration-200 hover:border-ton/45 hover:shadow-[0_8px_40px_rgba(0,152,234,0.15)]"
+      >
+        <div className="flex items-center gap-3">
+          <span className="relative shrink-0">
+            <span className="absolute -inset-0.5 rounded-full bg-ton/30 opacity-0 blur transition-opacity group-hover:opacity-100" />
+            <CoinImg token={t} className="relative h-10 w-10 rounded-full ring-1 ring-ton/20" />
+          </span>
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-1">
+              <span className="truncate text-sm font-bold group-hover:text-ton-bright">{t.name}</span>
+              <VerifiedCheck />
+            </div>
+            <div className="text-xs text-white/40">{timeAgo(t.at)}</div>
           </div>
-          <div className="text-xs text-white/40">{timeAgo(t.at)}</div>
         </div>
-      </div>
 
-      <MiniSparkline progress={t.progress} className="mt-4 h-10 w-full" />
+        <MiniSparkline progress={t.progress} className="mt-4 h-10 w-full" />
 
-      <div className="mt-3 flex items-center justify-between text-xs">
-        <span className="text-white/40">Market Cap</span>
-        <span className="font-bold">{fmtTon(t.mcNano)} TON</span>
-      </div>
-
-      <div className="mt-2">
-        <div className="flex items-center justify-between text-xs">
-          <span className="text-white/40">Progress</span>
-          <span className="font-bold text-ton-bright">{t.progress.toFixed(0)}%</span>
+        <div className="mt-4 flex items-center justify-between text-xs">
+          <span className="text-white/40">Market Cap</span>
+          <span className="font-bold tabular-nums">{fmtTon(t.mcNano)} TON</span>
         </div>
-        <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-white/5">
-          <div className="h-full rounded-full bg-ton" style={{ width: `${t.progress}%` }} />
+
+        <div className="mt-2.5">
+          <div className="flex items-center justify-between text-xs">
+            <span className="text-white/40">Progress</span>
+            <span className="font-bold tabular-nums text-ton-bright">{t.progress.toFixed(0)}%</span>
+          </div>
+          <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-white/5">
+            <div
+              className="h-full rounded-full bg-gradient-to-r from-ton to-ton-bright shadow-[0_0_8px_rgba(0,152,234,0.5)]"
+              style={{ width: `${t.progress}%` }}
+            />
+          </div>
         </div>
-      </div>
 
-      <span className="mt-4 rounded-xl border border-ton/30 py-2 text-center text-xs font-bold text-ton-bright transition group-hover:bg-ton/10">
-        View Launch
-      </span>
-    </Link>
-  );
-}
-
-function PlaceholderCard() {
-  return (
-    <Link
-      href="/create"
-      className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-white/10 bg-[#0A1220]/40 p-4 text-center transition hover:border-ton/40"
-    >
-      <div className="text-2xl">🚀</div>
-      <p className="mt-2 text-sm font-medium text-white/45">Be the next launch</p>
-    </Link>
+        <span className="mt-5 rounded-xl border border-ton/30 py-2 text-center text-xs font-bold text-ton-bright transition group-hover:bg-ton group-hover:text-white">
+          View Launch
+        </span>
+      </Link>
+    </motion.div>
   );
 }
 
 function CtaCard() {
   return (
-    <div className="flex flex-col rounded-2xl border border-ton/20 bg-gradient-to-b from-ton/10 to-[#0A1220] p-5">
-      <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-ton/15">
+    <motion.div
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.45, delay: 0.2 }}
+      className="relative flex flex-col overflow-hidden rounded-2xl border border-ton/30 bg-gradient-to-br from-ton/15 via-[#0A1525] to-[#060B14] p-5"
+    >
+      <div className="pointer-events-none absolute -right-8 -top-8 h-28 w-28 rounded-full bg-ton/20 blur-2xl" />
+      <motion.span
+        animate={{ rotate: 360 }}
+        transition={{ duration: 18, repeat: Infinity, ease: "linear" }}
+        className="relative flex h-11 w-11 items-center justify-center rounded-xl bg-ton/15 shadow-[0_0_20px_rgba(0,152,234,0.4)]"
+      >
         <TonShield className="h-5 w-5" />
-      </span>
-      <h3 className="mt-4 font-display text-lg font-bold leading-tight">Launch Your Memecoin in Seconds</h3>
-      <p className="mt-2 text-xs leading-relaxed text-white/50">
+      </motion.span>
+      <h3 className="relative mt-4 font-display text-lg font-bold leading-tight">Launch Your Memecoin in Seconds</h3>
+      <p className="relative mt-2 text-xs leading-relaxed text-white/55">
         Fast, secure and built for the next generation of communities.
       </p>
       <Link
         href="/create"
-        className="mt-auto flex items-center justify-center gap-2 rounded-xl bg-ton py-2.5 text-sm font-bold transition hover:bg-ton-bright active:scale-[0.98]"
+        className="relative mt-auto flex items-center justify-center gap-2 rounded-xl bg-gradient-to-b from-ton-bright to-ton-deep py-2.5 text-sm font-bold shadow-[0_4px_24px_rgba(0,152,234,0.4)] transition hover:shadow-[0_4px_32px_rgba(0,152,234,0.6)] active:scale-[0.98]"
       >
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4" aria-hidden>
           <path d="M12 5v14M5 12h14" />
         </svg>
         Create Coin
       </Link>
-    </div>
+    </motion.div>
   );
 }
 
 function LiveLaunchesGrid({ launches, loading }: { launches: TokenInfo[]; loading: boolean }) {
   const cards = launches.slice(0, 4);
-  const placeholders = Math.max(0, 4 - cards.length);
 
   return (
-    <section className="mt-8">
-      <div className="flex items-center gap-2">
-        <h2 className="font-display text-xl font-bold">Live Launches</h2>
-        <span className="ml-1 flex items-center gap-1.5 text-xs font-bold text-emerald-400">
+    <section className="mt-12">
+      <div className="flex items-center gap-2.5">
+        <h2 className="text-gradient font-display text-xl font-bold">Live Launches</h2>
+        <span className="flex items-center gap-1.5 text-xs font-bold text-emerald-400">
           <span className="relative flex h-2 w-2">
             <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400/70" />
             <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-400" />
@@ -461,31 +532,22 @@ function LiveLaunchesGrid({ launches, loading }: { launches: TokenInfo[]; loadin
         </span>
       </div>
 
-      <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
-        {loading && launches.length === 0 ? (
-          Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="rounded-2xl border border-white/[0.08] bg-[#0A1220] p-4">
-              <div className="flex items-center gap-3">
-                <div className="shimmer h-10 w-10 rounded-full" />
-                <div className="flex-1 space-y-2">
-                  <div className="shimmer h-3 w-2/3 rounded" />
-                  <div className="shimmer h-2 w-1/2 rounded" />
+      <div className="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+        {loading && launches.length === 0
+          ? Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="rounded-2xl border border-ton/15 bg-gradient-to-br from-[#0A1525] to-[#060B14] p-5">
+                <div className="flex items-center gap-3">
+                  <div className="shimmer h-10 w-10 rounded-full" />
+                  <div className="flex-1 space-y-2">
+                    <div className="shimmer h-3 w-2/3 rounded" />
+                    <div className="shimmer h-2 w-1/2 rounded" />
+                  </div>
                 </div>
+                <div className="shimmer mt-4 h-10 rounded" />
+                <div className="shimmer mt-3 h-8 rounded" />
               </div>
-              <div className="shimmer mt-4 h-10 rounded" />
-              <div className="shimmer mt-3 h-8 rounded" />
-            </div>
-          ))
-        ) : (
-          <>
-            {cards.map((t) => (
-              <TokenCard key={t.jetton} t={t} />
-            ))}
-            {Array.from({ length: placeholders }).map((_, i) => (
-              <PlaceholderCard key={`ph-${i}`} />
-            ))}
-          </>
-        )}
+            ))
+          : cards.map((t, i) => <TokenCard key={t.jetton} t={t} i={i} />)}
         <CtaCard />
       </div>
     </section>
@@ -526,17 +588,17 @@ function TrendingLaunches({
   });
 
   return (
-    <section id="trending" className="scroll-mt-20 bg-[#060A12] px-6 pb-16 pt-4">
+    <section id="trending" className="scroll-mt-20 px-6 pb-20 pt-8">
       <div className="mx-auto max-w-7xl">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <h2 className="font-display text-2xl font-bold tracking-tight">🔥 Trending Launches</h2>
-          <div className="flex flex-wrap gap-1 rounded-xl border border-white/5 bg-space-900 p-1">
+          <div className="flex flex-wrap gap-1 rounded-xl border border-white/5 bg-[#0A1525] p-1">
             {TABS.map((t) => (
               <button
                 key={t.key}
                 onClick={() => setTab(t.key)}
                 className={`rounded-lg px-3.5 py-1.5 text-sm font-medium transition ${
-                  tab === t.key ? "bg-ton text-white" : "text-white/45 hover:text-white/80"
+                  tab === t.key ? "bg-ton text-white shadow-[0_0_16px_rgba(0,152,234,0.4)]" : "text-white/45 hover:text-white/80"
                 }`}
               >
                 {t.label}
@@ -545,7 +607,7 @@ function TrendingLaunches({
           </div>
         </div>
 
-        <div className="mt-6 overflow-x-auto rounded-2xl border border-white/5 bg-space-950/60">
+        <div className="mt-6 overflow-x-auto rounded-2xl border border-ton/15 bg-gradient-to-br from-[#0A1525] to-[#060B14]">
           {loading ? (
             <div className="space-y-3 p-6">
               {Array.from({ length: 4 }).map((_, i) => (
@@ -553,15 +615,15 @@ function TrendingLaunches({
               ))}
             </div>
           ) : sorted.length === 0 ? (
-            <div className="flex flex-col items-center px-6 py-20 text-center">
+            <div className="flex flex-col items-center px-6 py-24 text-center">
               <div className="text-5xl">🚀</div>
-              <h3 className="mt-5 font-display text-xl font-bold">No tokens launched yet</h3>
+              <h3 className="mt-5 font-display text-2xl font-bold">No tokens launched yet</h3>
               <p className="mt-2 text-sm text-white/45">
-                Be the first to launch on VYNX{totalCoins !== null ? ` · ${totalCoins} created on-chain` : ""}
+                Be the first to create a memecoin on VYNX{totalCoins ? ` · ${totalCoins} created on-chain` : ""}
               </p>
               <Link
                 href="/create"
-                className="mt-7 inline-flex items-center gap-2 rounded-xl bg-ton px-7 py-3.5 font-display font-bold transition hover:bg-ton-bright active:scale-[0.99]"
+                className="mt-8 inline-flex items-center gap-2 rounded-xl bg-gradient-to-b from-ton-bright to-ton-deep px-8 py-4 font-display font-bold shadow-[0_4px_28px_rgba(0,152,234,0.5)] transition hover:shadow-[0_4px_40px_rgba(0,152,234,0.7)] active:scale-[0.99]"
               >
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5" aria-hidden>
                   <path d="M12 5v14M5 12h14" />
@@ -572,15 +634,15 @@ function TrendingLaunches({
           ) : (
             <table className="w-full text-sm">
               <thead>
-                <tr className="text-left text-xs uppercase tracking-wider text-white/30">
-                  <th className="px-4 py-4 font-medium">#</th>
+                <tr className="bg-gradient-to-r from-ton/[0.07] to-transparent text-left text-xs uppercase tracking-wider text-white/35">
+                  <th className="px-5 py-4 font-medium">#</th>
                   <th className="py-4 font-medium">Token</th>
                   <th className="hidden py-4 font-medium md:table-cell">Creator</th>
                   <th className="hidden py-4 font-medium md:table-cell">Launched</th>
                   <th className="py-4 font-medium">Market Cap</th>
                   <th className="hidden py-4 font-medium lg:table-cell">Progress</th>
                   <th className="hidden py-4 font-medium lg:table-cell">Reserve</th>
-                  <th className="py-4 pr-4 font-medium" />
+                  <th className="py-4 pr-5 font-medium" />
                 </tr>
               </thead>
               <tbody>
@@ -592,12 +654,15 @@ function TrendingLaunches({
                     viewport={{ once: true, margin: "-40px" }}
                     transition={{ duration: 0.4, delay: (i % 8) * 0.05 }}
                     onClick={() => router.push(`/token/${t.jetton}`)}
-                    className="cursor-pointer border-t border-white/5 transition-colors hover:bg-white/[0.03]"
+                    className="cursor-pointer border-t border-white/5 transition-colors hover:bg-ton/[0.04]"
                   >
-                    <td className="px-4 py-4 text-white/30">{i + 1}</td>
+                    <td className="px-5 py-4 tabular-nums text-white/30">{i + 1}</td>
                     <td className="py-4">
                       <div className="flex items-center gap-3">
-                        <CoinImg token={t} className="h-9 w-9 shrink-0 rounded-full" />
+                        <span className="relative shrink-0">
+                          <span className="absolute -inset-0.5 rounded-full bg-ton/25 blur-sm" />
+                          <CoinImg token={t} className="relative h-9 w-9 rounded-full ring-1 ring-ton/25" />
+                        </span>
                         <div className="min-w-0">
                           <div className="truncate font-bold">{t.name}</div>
                           <div className="text-xs text-white/30">${t.ticker}</div>
@@ -611,7 +676,7 @@ function TrendingLaunches({
                           target="_blank"
                           rel="noopener noreferrer"
                           onClick={(e) => e.stopPropagation()}
-                          className="text-white/50 transition hover:text-ton-bright"
+                          className="tabular-nums text-white/50 transition hover:text-ton-bright"
                         >
                           {shortAddr(t.creator)}
                         </a>
@@ -620,21 +685,24 @@ function TrendingLaunches({
                       )}
                     </td>
                     <td className="hidden py-4 text-white/50 md:table-cell">{timeAgo(t.at)}</td>
-                    <td className="py-4 font-display font-semibold">{fmtTon(t.mcNano)} TON</td>
+                    <td className="py-4 font-display font-semibold tabular-nums">{fmtTon(t.mcNano)} TON</td>
                     <td className="hidden py-4 lg:table-cell">
                       <div className="flex items-center gap-2">
                         <div className="h-1.5 w-20 overflow-hidden rounded-full bg-white/5">
-                          <div className="h-full rounded-full bg-ton" style={{ width: `${t.progress}%` }} />
+                          <div
+                            className="h-full rounded-full bg-gradient-to-r from-ton to-ton-bright shadow-[0_0_8px_rgba(0,152,234,0.5)]"
+                            style={{ width: `${t.progress}%` }}
+                          />
                         </div>
-                        <span className="text-xs text-white/50">{t.progress.toFixed(0)}%</span>
+                        <span className="tabular-nums text-xs text-white/50">{t.progress.toFixed(0)}%</span>
                       </div>
                     </td>
-                    <td className="hidden py-4 text-white/60 lg:table-cell">{fmtTon(t.reserveNano)} TON</td>
-                    <td className="py-4 pr-4 text-right">
+                    <td className="hidden py-4 tabular-nums text-white/60 lg:table-cell">{fmtTon(t.reserveNano)} TON</td>
+                    <td className="py-4 pr-5 text-right">
                       <Link
                         href={`/token/${t.jetton}`}
                         onClick={(e) => e.stopPropagation()}
-                        className="rounded-lg border border-ton/30 px-4 py-1.5 text-xs font-bold text-ton-bright transition hover:bg-ton/10"
+                        className="rounded-lg border border-ton/30 px-4 py-1.5 text-xs font-bold text-ton-bright transition hover:bg-ton hover:text-white"
                       >
                         View
                       </Link>
@@ -659,16 +727,23 @@ const FEATURE_CARDS = [
 
 function FeatureCards() {
   return (
-    <section id="how-it-works" className="scroll-mt-16 bg-space-950 px-6 py-20">
+    <section id="how-it-works" className="scroll-mt-16 px-6 py-12">
       <div className="mx-auto grid max-w-7xl gap-5 sm:grid-cols-3">
-        {FEATURE_CARDS.map((f) => (
-          <div key={f.title} className="rounded-2xl border border-white/[0.08] bg-[#0A1220] p-6 transition hover:border-ton/30">
+        {FEATURE_CARDS.map((f, i) => (
+          <motion.div
+            key={f.title}
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-60px" }}
+            transition={{ duration: 0.5, delay: i * 0.08 }}
+            className="rounded-2xl border border-ton/15 bg-gradient-to-br from-[#0A1525] to-[#060B14] p-7 transition-all duration-200 hover:-translate-y-1 hover:border-ton/40 hover:shadow-[0_8px_40px_rgba(0,152,234,0.12)]"
+          >
             <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-ton/10">
               <Icon d={f.icon} className="h-5 w-5 text-ton-bright" />
             </span>
             <h3 className="mt-5 font-display text-lg font-bold">{f.title}</h3>
             <p className="mt-2 text-sm leading-relaxed text-white/45">{f.desc}</p>
-          </div>
+          </motion.div>
         ))}
       </div>
     </section>
@@ -709,7 +784,7 @@ const PHASES = [
 
 function Roadmap() {
   return (
-    <section id="roadmap" className="scroll-mt-16 bg-space-900 px-6 py-32">
+    <section id="roadmap" className="scroll-mt-16 px-6 py-24">
       <div className="mx-auto max-w-6xl">
         <motion.p {...fadeUp} className="text-xs font-bold uppercase tracking-[0.25em] text-ton-bright/80">
           Roadmap
@@ -770,7 +845,7 @@ function Roadmap() {
 /* =================== FOOTER =================== */
 function Footer() {
   return (
-    <footer className="border-t border-white/[0.06] bg-space-950 px-6 py-10">
+    <footer className="border-t border-white/[0.06] px-6 py-10">
       <div className="mx-auto flex max-w-6xl flex-col items-center gap-6 sm:flex-row sm:justify-between">
         <a href="#home" className="flex items-center gap-2 font-display font-bold">
           <LogoMark className="h-7 w-7" />
