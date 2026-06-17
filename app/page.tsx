@@ -661,8 +661,10 @@ function TrendingLaunches({
             </div>
           ) : sorted.length === 0 ? (
             <div className="flex flex-col items-center px-6 py-24 text-center">
-              <div className="text-5xl">🚀</div>
-              <h3 className="mt-5 font-display text-2xl font-bold">No tokens launched yet</h3>
+              <span className="flex h-16 w-16 items-center justify-center rounded-2xl border border-ton/20 bg-ton/5">
+                <Icon d={ICONS.rocket} className="h-8 w-8 text-ton-bright" />
+              </span>
+              <h3 className="mt-6 font-display text-2xl font-bold">No tokens launched yet</h3>
               <p className="mt-2 text-sm text-white/45">
                 Be the first to create a memecoin on VYNX{totalCoins ? ` · ${totalCoins} created on-chain` : ""}
               </p>
