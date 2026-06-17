@@ -130,9 +130,12 @@ export default function Home() {
   const { launches, totalCoins, loading } = useLaunches();
   return (
     <main className="relative font-sans">
-      {/* VYNX atmosphere — radial gradients + subtle grid */}
+      {/* VYNX atmosphere — radial gradients + blurred orbs + subtle grid */}
       <div className="pointer-events-none fixed inset-0 -z-10">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_45%_40%_at_88%_2%,rgba(0,152,234,0.08),transparent_60%),radial-gradient(ellipse_45%_45%_at_8%_98%,rgba(0,80,180,0.06),transparent_60%)]" />
+        <div className="absolute left-[-10%] top-[6%] h-[420px] w-[420px] rounded-full bg-[rgba(0,152,234,0.06)] blur-[150px]" />
+        <div className="absolute right-[-8%] top-[38%] h-[480px] w-[480px] rounded-full bg-[rgba(0,152,234,0.06)] blur-[150px]" />
+        <div className="absolute bottom-[4%] left-[34%] h-[440px] w-[440px] rounded-full bg-[rgba(0,152,234,0.06)] blur-[150px]" />
         <div className="vynx-grid absolute inset-0" />
       </div>
       <Nav />
@@ -231,6 +234,21 @@ function timeAgo(unix: number): string {
 }
 const shortAddr = (a: string | null) => (a && a.length > 12 ? `${a.slice(0, 4)}…${a.slice(-4)}` : a ?? "—");
 
+/** placeholder/test coins (e.g. ones literally named "TON") get a TEST badge */
+const isTestToken = (t: { name: string; ticker: string }) => {
+  const n = t.name.trim().toUpperCase();
+  const k = t.ticker.trim().toUpperCase();
+  return n === "TON" || k === "TON" || n === "TEST";
+};
+
+function TestBadge() {
+  return (
+    <span className="rounded bg-amber-400/15 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-amber-300">
+      Test
+    </span>
+  );
+}
+
 /* ---------- live on-chain launches (shared by hero panel + trending table) ---------- */
 function useLaunches() {
   const [launches, setLaunches] = useState<TokenInfo[]>([]);
@@ -286,6 +304,17 @@ function Hero({
   return (
     <section id="home" className="px-6 pt-24">
       <div className="mx-auto max-w-7xl">
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="mb-7 text-center"
+        >
+          <h1 className="text-gradient font-display text-sm font-bold uppercase tracking-[0.22em] sm:text-base">
+            VYNX — Launch Memecoins on TON in Seconds
+          </h1>
+          <p className="mt-2 text-xs text-white/40 sm:text-sm">The most powerful launchpad on TON</p>
+        </motion.div>
         <StatsBar launches={launches} totalCoins={totalCoins} loading={loading} />
         <LiveLaunchesGrid launches={launches} loading={loading} />
       </div>
@@ -322,7 +351,9 @@ function Stat({ value, format, label }: { value: number | null; format: (n: numb
       <div className="font-display text-2xl font-bold tabular-nums text-white sm:text-[1.75rem]">
         {n === null ? "—" : format(n)}
       </div>
-      <div className="mt-1 text-xs text-white/40">{label}</div>
+      {/* tiny blue glow accent line */}
+      <div className="mt-2 h-px w-8 rounded-full bg-gradient-to-r from-ton to-transparent shadow-[0_0_6px_rgba(0,152,234,0.6)]" />
+      <div className="mt-2 text-xs text-white/40">{label}</div>
     </div>
   );
 }
@@ -403,17 +434,25 @@ function MiniSparkline({ progress, className = "" }: { progress: number; classNa
           <stop offset="100%" stopColor="#33BBFF" />
         </linearGradient>
         <linearGradient id={`spark-fill-${gid}`} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="rgba(0,152,234,0.2)" />
+          <stop offset="0%" stopColor="rgba(0,152,234,0.15)" />
           <stop offset="100%" stopColor="rgba(0,152,234,0)" />
         </linearGradient>
       </defs>
       {/* full faint curve */}
       <path d={toPath(pts)} fill="none" stroke="rgba(51,187,255,0.18)" strokeWidth="1.5" vectorEffect="non-scaling-stroke" />
-      {/* progress portion: gradient area + gradient line */}
+      {/* progress portion: gradient area + glowing gradient line */}
       {k > 0 && (
         <>
           <path d={`${toPath(fill)} L${fill[k][0].toFixed(1)} ${H} L0 ${H} Z`} fill={`url(#spark-fill-${gid})`} />
-          <path d={toPath(fill)} fill="none" stroke={`url(#spark-line-${gid})`} strokeWidth="2.2" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
+          <path
+            d={toPath(fill)}
+            fill="none"
+            stroke={`url(#spark-line-${gid})`}
+            strokeWidth="2"
+            strokeLinecap="round"
+            vectorEffect="non-scaling-stroke"
+            style={{ filter: "drop-shadow(0 0 3px rgba(0,152,234,0.6))" }}
+          />
         </>
       )}
     </svg>
@@ -443,13 +482,13 @@ function TokenCard({ t, i }: { t: TokenInfo; i: number }) {
       >
         <div className="flex items-center gap-3">
           <span className="relative shrink-0">
-            <span className="absolute -inset-0.5 rounded-full bg-ton/30 opacity-0 blur transition-opacity group-hover:opacity-100" />
-            <CoinImg token={t} className="relative h-10 w-10 rounded-full ring-1 ring-ton/20" />
+            <span className="absolute -inset-0.5 rounded-full bg-ton/40 opacity-60 blur-[3px] transition-opacity group-hover:opacity-100" />
+            <CoinImg token={t} className="relative h-10 w-10 rounded-full ring-1 ring-ton/50 shadow-[0_0_8px_rgba(0,152,234,0.4)]" />
           </span>
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-1">
               <span className="truncate text-sm font-bold group-hover:text-ton-bright">{t.name}</span>
-              <VerifiedCheck />
+              {isTestToken(t) ? <TestBadge /> : <VerifiedCheck />}
             </div>
             <div className="text-xs text-white/40">{timeAgo(t.at)}</div>
           </div>
@@ -489,23 +528,27 @@ function CtaCard() {
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.45, delay: 0.2 }}
-      className="relative flex flex-col overflow-hidden rounded-2xl border border-ton/30 bg-gradient-to-br from-ton/15 via-[#0A1525] to-[#060B14] p-5"
+      className="relative flex flex-col overflow-hidden rounded-2xl border border-ton/35 bg-gradient-to-br from-ton/25 via-[#0B1A2E] to-[#060B14] p-5"
     >
-      <div className="pointer-events-none absolute -right-8 -top-8 h-28 w-28 rounded-full bg-ton/20 blur-2xl" />
-      <motion.span
-        animate={{ rotate: 360 }}
-        transition={{ duration: 18, repeat: Infinity, ease: "linear" }}
-        className="relative flex h-11 w-11 items-center justify-center rounded-xl bg-ton/15 shadow-[0_0_20px_rgba(0,152,234,0.4)]"
-      >
-        <TonShield className="h-5 w-5" />
-      </motion.span>
-      <h3 className="relative mt-4 font-display text-lg font-bold leading-tight">Launch Your Memecoin in Seconds</h3>
-      <p className="relative mt-2 text-xs leading-relaxed text-white/55">
+      <div className="pointer-events-none absolute -right-10 -top-10 h-32 w-32 rounded-full bg-ton/25 blur-2xl" />
+      {/* TON icon with rotating glow */}
+      <div className="relative h-14 w-14">
+        <motion.span
+          animate={{ rotate: 360 }}
+          transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
+          className="absolute inset-0 rounded-2xl bg-[conic-gradient(from_0deg,transparent,rgba(0,152,234,0.7),transparent_60%)] blur-[6px]"
+        />
+        <span className="absolute inset-0 flex items-center justify-center rounded-2xl bg-ton/15 shadow-[0_0_24px_rgba(0,152,234,0.5)]">
+          <TonShield className="h-7 w-7" />
+        </span>
+      </div>
+      <h3 className="relative mt-5 font-display text-lg font-bold leading-tight">Launch Your Memecoin in Seconds</h3>
+      <p className="relative mt-2 text-xs leading-relaxed text-white/60">
         Fast, secure and built for the next generation of communities.
       </p>
       <Link
         href="/create"
-        className="relative mt-auto flex items-center justify-center gap-2 rounded-xl bg-gradient-to-b from-ton-bright to-ton-deep py-2.5 text-sm font-bold shadow-[0_4px_24px_rgba(0,152,234,0.4)] transition hover:shadow-[0_4px_32px_rgba(0,152,234,0.6)] active:scale-[0.98]"
+        className="relative mt-auto flex items-center justify-center gap-2 rounded-xl bg-gradient-to-b from-ton-bright to-ton-deep py-3 text-sm font-bold shadow-[0_6px_32px_rgba(0,152,234,0.55)] transition hover:shadow-[0_6px_44px_rgba(0,152,234,0.8)] active:scale-[0.98]"
       >
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4" aria-hidden>
           <path d="M12 5v14M5 12h14" />
@@ -664,7 +707,10 @@ function TrendingLaunches({
                           <CoinImg token={t} className="relative h-9 w-9 rounded-full ring-1 ring-ton/25" />
                         </span>
                         <div className="min-w-0">
-                          <div className="truncate font-bold">{t.name}</div>
+                          <div className="flex items-center gap-1.5">
+                            <span className="truncate font-bold">{t.name}</span>
+                            {isTestToken(t) && <TestBadge />}
+                          </div>
                           <div className="text-xs text-white/30">${t.ticker}</div>
                         </div>
                       </div>
