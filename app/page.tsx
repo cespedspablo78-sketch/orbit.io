@@ -1,12 +1,10 @@
 "use client";
 
 import { motion } from "framer-motion";
-import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { fromNano } from "@ton/core";
-import Mascot from "@/components/Mascot";
 import { getLaunches, getTotalCoins, type TokenInfo } from "@/lib/vynxIndexer";
 
 const MotionLink = motion(Link);
@@ -14,9 +12,6 @@ const MotionLink = motion(Link);
 /* ---------- social links ---------- */
 const TELEGRAM_URL = "https://t.me/+iwn4e-sDm31jMzQx";
 const X_URL = "https://x.com/vynxjz";
-
-/* real-time 3D hero scene — client-only, never SSR'd */
-const Scene3D = dynamic(() => import("@/components/Scene3D"), { ssr: false });
 
 /* ---------- shared motion presets ---------- */
 const fadeUp = {
@@ -136,9 +131,9 @@ export default function Home() {
   return (
     <main className="font-sans">
       <Nav />
-      <Hero launches={launches} loading={loading} />
+      <Hero launches={launches} totalCoins={totalCoins} loading={loading} />
       <TrendingLaunches launches={launches} totalCoins={totalCoins} loading={loading} />
-      <HowItWorks />
+      <FeatureCards />
       <Roadmap />
       <Footer />
     </main>
@@ -164,8 +159,8 @@ function Nav() {
 
         <ul className="hidden items-center gap-7 text-sm font-medium text-white/60 lg:flex">
           {[
-            ["Launch", "/launch"],
-            ["How It Works", "#how-it-works"],
+            ["Launch", "/create"],
+            ["Trending", "#trending"],
             ["Roadmap", "#roadmap"],
             ["Docs", "/docs"],
           ].map(([l, href]) => (
@@ -211,14 +206,6 @@ function Nav() {
     </motion.nav>
   );
 }
-
-/* =================== HERO =================== */
-const FEATURES = [
-  { icon: ICONS.bolt, title: "Instant Launch", desc: "Create your token in seconds." },
-  { icon: ICONS.shield, title: "Built on TON", desc: "Fast, secure and extremely low fees." },
-  { icon: ICONS.dollar, title: "Low Fees", desc: "Keep more, pay less. Always." },
-  { icon: ICONS.users, title: "Community First", desc: "Built for degens, by degens." },
-];
 
 /* ---------- formatting helpers ---------- */
 function fmtTon(nano: bigint, dp = 2): string {
@@ -282,139 +269,190 @@ function CoinImg({ token, className = "" }: { token: TokenInfo; className?: stri
   );
 }
 
-function Hero({ launches, loading }: { launches: TokenInfo[]; loading: boolean }) {
+function Hero({
+  launches,
+  totalCoins,
+  loading,
+}: {
+  launches: TokenInfo[];
+  totalCoins: number | null;
+  loading: boolean;
+}) {
   return (
-    <section id="home" className="relative overflow-hidden bg-space-950 pt-16">
-      {/* ===== real-time 3D scene (stars, nebula, fog, coins, rings, platform) ===== */}
-      <div className="absolute inset-0">
-        <Scene3D />
-      </div>
-      {/* subtle grid over the scene */}
-      <div className="grid-bg pointer-events-none absolute inset-0 opacity-40" />
-
-      {/* ===== content: 3 columns ===== */}
-      <div className="relative z-10 mx-auto grid max-w-[1500px] items-center gap-6 px-6 pb-4 pt-4 lg:grid-cols-[35fr,30fr,35fr] lg:pt-2">
-        {/* LEFT column */}
-        <div>
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.05 }}
-            className="mb-4 inline-flex items-center gap-2.5 rounded-full border border-ton/25 bg-space-800/70 px-4 py-2 text-xs font-bold uppercase tracking-[0.14em] text-white/85"
-          >
-            <TonShield className="h-4 w-4" />
-            Built on TON
-            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-ton-bright" />
-          </motion.div>
-
-          <h1
-            className="font-sans font-black text-white"
-            style={{ fontSize: "clamp(2.5rem, 4vw, 4rem)", letterSpacing: "-2px", lineHeight: 1.02 }}
-          >
-            {["Launch", "Memecoins"].map((line, i) => (
-              <motion.span
-                key={line}
-                initial={{ opacity: 0, y: 24 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.15 + i * 0.1, ease: [0.21, 0.6, 0.35, 1] }}
-                className="block"
-              >
-                {line}
-              </motion.span>
-            ))}
-            <motion.span
-              initial={{ opacity: 0, y: 24 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.35, ease: [0.21, 0.6, 0.35, 1] }}
-              className="block"
-            >
-              In <span className="text-glow text-ton">Seconds.</span>
-            </motion.span>
-          </h1>
-
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.45 }}
-            className="mt-4 max-w-sm text-base leading-relaxed text-white/55"
-          >
-            The fastest and easiest way to launch, trade and discover memecoins on TON.
-          </motion.p>
-
-          <motion.div
-            id="launch"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.55 }}
-            className="mt-6"
-          >
-            <MotionLink
-              href="/create"
-              whileHover={{ scale: 1.04, boxShadow: "0 0 60px rgba(0,152,234,0.7)" }}
-              whileTap={{ scale: 0.96 }}
-              className="relative inline-flex items-center gap-2.5 overflow-hidden rounded-xl bg-ton px-9 py-3.5 font-display text-lg font-bold shadow-glow-md"
-            >
-              <motion.span
-                aria-hidden
-                animate={{ x: ["-180%", "280%"] }}
-                transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut", repeatDelay: 1.8 }}
-                className="absolute inset-y-0 left-0 w-1/3 -skew-x-12 bg-white/25 blur-sm"
-              />
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" className="relative h-5 w-5" aria-hidden>
-                <path d="M12 5v14M5 12h14" />
-              </svg>
-              <span className="relative">Create Coin</span>
-            </MotionLink>
-          </motion.div>
-
-          {/* feature pills */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.7 }}
-            className="mt-6 grid grid-cols-2 gap-x-6 gap-y-4"
-          >
-            {FEATURES.map((f) => (
-              <div key={f.title}>
-                <Icon d={f.icon} className="h-5 w-5 text-ton-bright" />
-                <div className="mt-3 text-sm font-bold">{f.title}</div>
-                <p className="mt-1 text-xs leading-relaxed text-white/45">{f.desc}</p>
-              </div>
-            ))}
-          </motion.div>
-        </div>
-
-        {/* MIDDLE column — THE ORBITER */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.94 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.9, delay: 0.3 }}
-          className="relative order-first lg:order-none"
-        >
-          <Mascot />
-        </motion.div>
-
-        {/* RIGHT column — LIVE LAUNCHES */}
-        <motion.div
-          initial={{ opacity: 0, y: 24 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: 0.4 }}
-        >
-          <LiveLaunches launches={launches} loading={loading} />
-        </motion.div>
+    <section id="home" className="bg-space-950 px-6 pt-24">
+      <div className="mx-auto max-w-7xl">
+        <StatsBar launches={launches} totalCoins={totalCoins} loading={loading} />
+        <LiveLaunchesGrid launches={launches} loading={loading} />
       </div>
     </section>
   );
 }
 
-/* =================== LIVE LAUNCHES PANEL =================== */
-function LiveLaunches({ launches, loading }: { launches: TokenInfo[]; loading: boolean }) {
-  const rows = launches.slice(0, 4);
+/* =================== STATS BAR =================== */
+function StatsBar({
+  launches,
+  totalCoins,
+  loading,
+}: {
+  launches: TokenInfo[];
+  totalCoins: number | null;
+  loading: boolean;
+}) {
+  const hasData = launches.length > 0;
+  const totalReserve = launches.reduce((s, t) => s + t.reserveNano, 0n);
+  const today = launches.filter((t) => Date.now() / 1000 - t.at < 86400).length;
+  const active = launches.filter((t) => !t.graduated).length;
+
+  const stats = [
+    { label: "Coins Launched", value: totalCoins !== null ? totalCoins.toLocaleString("en-US") : "—" },
+    { label: "Total Reserve", value: hasData ? `${fmtTon(totalReserve)} TON` : "—" },
+    { label: "Tokens Today", value: hasData ? String(today) : "—" },
+    { label: "Active", value: hasData ? String(active) : "—" },
+  ];
+
   return (
-    <div className="rounded-2xl border border-ton/20 bg-space-900/90 p-5 backdrop-blur">
-      <div className="flex items-center justify-between">
-        <span className="text-xs font-bold uppercase tracking-[0.18em] text-white/60">Live Launches</span>
-        <span className="flex items-center gap-1.5 text-xs font-bold text-emerald-400">
+    <div className="flex flex-col gap-5 rounded-2xl border border-white/[0.08] bg-[#0A1220] p-5 sm:flex-row sm:items-center sm:gap-8">
+      <div className="inline-flex shrink-0 items-center gap-2 rounded-full border border-ton/25 bg-ton/5 px-3.5 py-2 text-xs font-bold uppercase tracking-[0.14em] text-white/80">
+        <TonShield className="h-4 w-4" /> Built on TON
+      </div>
+      <div className="grid flex-1 grid-cols-2 gap-5 sm:grid-cols-4">
+        {stats.map((s) => (
+          <div key={s.label}>
+            <div className="font-display text-xl font-bold text-white sm:text-2xl">
+              {loading && !hasData && totalCoins === null ? "—" : s.value}
+            </div>
+            <div className="mt-0.5 text-xs text-white/40">{s.label}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* =================== MINI SPARKLINE (bonding curve shape) =================== */
+function MiniSparkline({ progress, className = "" }: { progress: number; className?: string }) {
+  const W = 120;
+  const H = 40;
+  const pts = Array.from({ length: 21 }, (_, i) => {
+    const x = (i / 20) * W;
+    const t = i / 20;
+    const y = H - 3 - (H - 8) * Math.pow(t, 1.7); // accelerating bonding curve
+    return [x, y] as const;
+  });
+  const toPath = (a: readonly (readonly [number, number])[]) =>
+    a.map(([x, y], i) => `${i ? "L" : "M"}${x.toFixed(1)} ${y.toFixed(1)}`).join(" ");
+  const k = Math.max(0, Math.min(20, Math.round((Math.min(100, Math.max(0, progress)) / 100) * 20)));
+  const fill = pts.slice(0, k + 1);
+
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} className={className} preserveAspectRatio="none" aria-hidden>
+      {/* full faint curve */}
+      <path d={toPath(pts)} fill="none" stroke="rgba(51,187,255,0.25)" strokeWidth="1.5" vectorEffect="non-scaling-stroke" />
+      {/* progress portion: filled area + bright line */}
+      {k > 0 && (
+        <>
+          <path d={`${toPath(fill)} L${fill[k][0].toFixed(1)} ${H} L0 ${H} Z`} fill="rgba(0,152,234,0.18)" />
+          <path d={toPath(fill)} fill="none" stroke="#33BBFF" strokeWidth="2" vectorEffect="non-scaling-stroke" />
+        </>
+      )}
+    </svg>
+  );
+}
+
+/* =================== LIVE LAUNCHES GRID =================== */
+function VerifiedCheck() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-3.5 w-3.5 shrink-0 text-ton-bright" fill="currentColor" aria-hidden>
+      <path d="M12 2l2.4 1.8 3-.3 1 2.8 2.5 1.6-1 2.8 1 2.8-2.5 1.6-1 2.8-3-.3L12 22l-2.4-1.8-3 .3-1-2.8L3.1 14l1-2.8-1-2.8 2.5-1.6 1-2.8 3 .3L12 2zm-1.2 12.9 5-5-1.4-1.4-3.6 3.6-1.6-1.6-1.4 1.4 3 3z" />
+    </svg>
+  );
+}
+
+function TokenCard({ t }: { t: TokenInfo }) {
+  return (
+    <Link
+      href={`/token/${t.jetton}`}
+      className="group flex flex-col rounded-2xl border border-white/[0.08] bg-[#0A1220] p-4 transition hover:border-ton/40"
+    >
+      <div className="flex items-center gap-3">
+        <CoinImg token={t} className="h-10 w-10 shrink-0 rounded-full" />
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-1">
+            <span className="truncate text-sm font-bold group-hover:text-ton-bright">{t.name}</span>
+            <VerifiedCheck />
+          </div>
+          <div className="text-xs text-white/40">{timeAgo(t.at)}</div>
+        </div>
+      </div>
+
+      <MiniSparkline progress={t.progress} className="mt-4 h-10 w-full" />
+
+      <div className="mt-3 flex items-center justify-between text-xs">
+        <span className="text-white/40">Market Cap</span>
+        <span className="font-bold">{fmtTon(t.mcNano)} TON</span>
+      </div>
+
+      <div className="mt-2">
+        <div className="flex items-center justify-between text-xs">
+          <span className="text-white/40">Progress</span>
+          <span className="font-bold text-ton-bright">{t.progress.toFixed(0)}%</span>
+        </div>
+        <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-white/5">
+          <div className="h-full rounded-full bg-ton" style={{ width: `${t.progress}%` }} />
+        </div>
+      </div>
+
+      <span className="mt-4 rounded-xl border border-ton/30 py-2 text-center text-xs font-bold text-ton-bright transition group-hover:bg-ton/10">
+        View Launch
+      </span>
+    </Link>
+  );
+}
+
+function PlaceholderCard() {
+  return (
+    <Link
+      href="/create"
+      className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-white/10 bg-[#0A1220]/40 p-4 text-center transition hover:border-ton/40"
+    >
+      <div className="text-2xl">🚀</div>
+      <p className="mt-2 text-sm font-medium text-white/45">Be the next launch</p>
+    </Link>
+  );
+}
+
+function CtaCard() {
+  return (
+    <div className="flex flex-col rounded-2xl border border-ton/20 bg-gradient-to-b from-ton/10 to-[#0A1220] p-5">
+      <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-ton/15">
+        <TonShield className="h-5 w-5" />
+      </span>
+      <h3 className="mt-4 font-display text-lg font-bold leading-tight">Launch Your Memecoin in Seconds</h3>
+      <p className="mt-2 text-xs leading-relaxed text-white/50">
+        Fast, secure and built for the next generation of communities.
+      </p>
+      <Link
+        href="/create"
+        className="mt-auto flex items-center justify-center gap-2 rounded-xl bg-ton py-2.5 text-sm font-bold transition hover:bg-ton-bright active:scale-[0.98]"
+      >
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4" aria-hidden>
+          <path d="M12 5v14M5 12h14" />
+        </svg>
+        Create Coin
+      </Link>
+    </div>
+  );
+}
+
+function LiveLaunchesGrid({ launches, loading }: { launches: TokenInfo[]; loading: boolean }) {
+  const cards = launches.slice(0, 4);
+  const placeholders = Math.max(0, 4 - cards.length);
+
+  return (
+    <section className="mt-8">
+      <div className="flex items-center gap-2">
+        <h2 className="font-display text-xl font-bold">Live Launches</h2>
+        <span className="ml-1 flex items-center gap-1.5 text-xs font-bold text-emerald-400">
           <span className="relative flex h-2 w-2">
             <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400/70" />
             <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-400" />
@@ -423,69 +461,34 @@ function LiveLaunches({ launches, loading }: { launches: TokenInfo[]; loading: b
         </span>
       </div>
 
-      <div className="mt-5 space-y-4">
-        {loading ? (
-          Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="flex items-center gap-3">
-              <div className="shimmer h-10 w-10 rounded-full" />
-              <div className="flex-1 space-y-2">
-                <div className="shimmer h-3 w-2/3 rounded" />
-                <div className="shimmer h-2 w-full rounded" />
+      <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+        {loading && launches.length === 0 ? (
+          Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="rounded-2xl border border-white/[0.08] bg-[#0A1220] p-4">
+              <div className="flex items-center gap-3">
+                <div className="shimmer h-10 w-10 rounded-full" />
+                <div className="flex-1 space-y-2">
+                  <div className="shimmer h-3 w-2/3 rounded" />
+                  <div className="shimmer h-2 w-1/2 rounded" />
+                </div>
               </div>
+              <div className="shimmer mt-4 h-10 rounded" />
+              <div className="shimmer mt-3 h-8 rounded" />
             </div>
           ))
-        ) : rows.length === 0 ? (
-          <div className="py-8 text-center">
-            <div className="text-3xl">🚀</div>
-            <p className="mt-3 font-display font-bold">Be the first launch</p>
-            <p className="mt-1 text-xs text-white/45">No tokens yet — start the orbit.</p>
-            <Link href="/create" className="mt-4 inline-block rounded-xl bg-ton px-5 py-2.5 text-sm font-bold transition hover:bg-ton-bright">
-              + Create Coin
-            </Link>
-          </div>
         ) : (
-          rows.map((t, i) => (
-            <motion.div
-              key={t.jetton}
-              initial={{ opacity: 0, x: 12 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.4, delay: i * 0.08 }}
-            >
-              <Link href={`/token/${t.jetton}`} className="group block">
-                <div className="flex items-center gap-3">
-                  <CoinImg token={t} className="h-10 w-10 shrink-0 rounded-full" />
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-1">
-                      <span className="truncate text-sm font-bold group-hover:text-ton-bright">{t.name}</span>
-                      <svg viewBox="0 0 24 24" className="h-3.5 w-3.5 shrink-0 text-ton-bright" fill="currentColor" aria-hidden>
-                        <path d="M12 2l2.4 1.8 3-.3 1 2.8 2.5 1.6-1 2.8 1 2.8-2.5 1.6-1 2.8-3-.3L12 22l-2.4-1.8-3 .3-1-2.8L3.1 14l1-2.8-1-2.8 2.5-1.6 1-2.8 3 .3L12 2zm-1.2 12.9 5-5-1.4-1.4-3.6 3.6-1.6-1.6-1.4 1.4 3 3z" />
-                      </svg>
-                    </div>
-                    <div className="text-xs text-white/40">Joined {timeAgo(t.at)}</div>
-                  </div>
-                  <div className="shrink-0 text-right">
-                    <div className="text-sm font-bold">{fmtTon(t.mcNano)} <span className="text-xs text-white/40">TON</span></div>
-                    <div className="text-xs font-bold text-emerald-400">{t.progress.toFixed(0)}%</div>
-                  </div>
-                </div>
-                <div className="mt-2 h-1 overflow-hidden rounded-full bg-white/5">
-                  <div className="h-full rounded-full bg-ton" style={{ width: `${t.progress}%` }} />
-                </div>
-              </Link>
-            </motion.div>
-          ))
+          <>
+            {cards.map((t) => (
+              <TokenCard key={t.jetton} t={t} />
+            ))}
+            {Array.from({ length: placeholders }).map((_, i) => (
+              <PlaceholderCard key={`ph-${i}`} />
+            ))}
+          </>
         )}
+        <CtaCard />
       </div>
-
-      {rows.length > 0 && (
-        <a href="#trending" className="mt-5 flex items-center justify-center gap-1.5 rounded-xl border border-white/10 py-2.5 text-sm font-medium text-white/60 transition hover:border-ton/40 hover:text-white">
-          View All Launches
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4" aria-hidden>
-            <path d="M5 12h14M13 6l6 6-6 6" />
-          </svg>
-        </a>
-      )}
-    </div>
+    </section>
   );
 }
 
@@ -647,60 +650,26 @@ function TrendingLaunches({
   );
 }
 
-/* =================== HOW IT WORKS =================== */
-const STEPS = [
-  { n: "01", icon: ICONS.create, title: "Create", desc: "Name, ticker, image. 20 seconds." },
-  { n: "02", icon: ICONS.rocket, title: "Launch", desc: "Your Jetton is live on TON. Bonding curve starts." },
-  { n: "03", icon: ICONS.pump, title: "Pump", desc: "Share the link. Your community does the rest." },
+/* =================== FEATURE CARDS =================== */
+const FEATURE_CARDS = [
+  { icon: ICONS.bolt, title: "Instant Launch", desc: "Create and deploy your token on TON in seconds — no code, no setup." },
+  { icon: ICONS.dollar, title: "Low Fees", desc: "Near-zero transaction costs. Keep more, pay less. Always." },
+  { icon: ICONS.users, title: "Community First", desc: "Built for degens, by degens — designed for the next generation of communities." },
 ];
 
-function HowItWorks() {
+function FeatureCards() {
   return (
-    <section id="how-it-works" className="scroll-mt-16 bg-space-950 px-6 py-32">
-      <div className="mx-auto max-w-6xl">
-        <motion.p {...fadeUp} className="text-xs font-bold uppercase tracking-[0.25em] text-ton-bright/80">
-          How It Works
-        </motion.p>
-        <motion.h2 {...fadeUp} className="mt-4 font-display text-4xl font-bold tracking-tight sm:text-5xl">
-          Three steps. That&apos;s it.
-        </motion.h2>
-        <motion.p {...fadeUp} className="mt-4 text-white/45">
-          No tutorials. No gas guides. Just launch.
-        </motion.p>
-
-        <div className="mt-28 grid gap-20 sm:grid-cols-3 sm:gap-10">
-          {STEPS.map((s, i) => (
-            <motion.div key={s.n} {...stagger(i)} className="relative">
-              {/* ghost number behind text */}
-              <span
-                aria-hidden
-                className="pointer-events-none absolute -top-16 left-0 select-none font-display text-[6.5rem] font-bold leading-none text-[rgba(0,152,234,0.15)]"
-              >
-                {s.n}
-              </span>
-              <div className="relative pt-8">
-                <Icon d={s.icon} className="h-6 w-6 text-ton-bright" />
-                <h3 className="mt-5 font-display text-xl font-bold">{s.title}</h3>
-                <p className="mt-2 max-w-[260px] text-sm leading-relaxed text-white/45">{s.desc}</p>
-              </div>
-              {/* arrow connector */}
-              {i < STEPS.length - 1 && (
-                <svg
-                  aria-hidden
-                  viewBox="0 0 48 16"
-                  fill="none"
-                  stroke="rgba(0,152,234,0.3)"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="absolute -right-8 top-10 hidden h-4 w-12 sm:block"
-                >
-                  <path d="M0 8h42M36 2l8 6-8 6" />
-                </svg>
-              )}
-            </motion.div>
-          ))}
-        </div>
+    <section id="how-it-works" className="scroll-mt-16 bg-space-950 px-6 py-20">
+      <div className="mx-auto grid max-w-7xl gap-5 sm:grid-cols-3">
+        {FEATURE_CARDS.map((f) => (
+          <div key={f.title} className="rounded-2xl border border-white/[0.08] bg-[#0A1220] p-6 transition hover:border-ton/30">
+            <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-ton/10">
+              <Icon d={f.icon} className="h-5 w-5 text-ton-bright" />
+            </span>
+            <h3 className="mt-5 font-display text-lg font-bold">{f.title}</h3>
+            <p className="mt-2 text-sm leading-relaxed text-white/45">{f.desc}</p>
+          </div>
+        ))}
       </div>
     </section>
   );
