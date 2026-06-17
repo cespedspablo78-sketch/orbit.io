@@ -62,10 +62,12 @@ function LogoMark({ className = "h-8 w-8" }: { className?: string }) {
       src="/logo.png"
       alt="VYNX"
       onError={() => setOk(false)}
-      className={`${className} object-contain`}
+      className={`${className} scale-110 object-contain`}
       style={{
-        WebkitMaskImage: "radial-gradient(circle at 50% 50%, black 60%, transparent 78%)",
-        maskImage: "radial-gradient(circle at 50% 50%, black 60%, transparent 78%)",
+        // soft square fade so the dark logo background melts into the nav,
+        // generous enough not to clip the V tips
+        WebkitMaskImage: "radial-gradient(ellipse 75% 75% at 50% 50%, black 70%, transparent 100%)",
+        maskImage: "radial-gradient(ellipse 75% 75% at 50% 50%, black 70%, transparent 100%)",
       }}
     />
   ) : (
