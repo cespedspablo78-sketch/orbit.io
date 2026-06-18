@@ -169,6 +169,7 @@ function Nav() {
 
         <ul className="hidden items-center gap-7 text-sm font-medium text-white/60 lg:flex">
           {[
+            ["Terminal", "/terminal"],
             ["Launch", "/create"],
             ["Trending", "#trending"],
             ["Roadmap", "#roadmap"],
@@ -316,6 +317,17 @@ function Hero({
             VYNX — Launch Memecoins on TON in Seconds
           </h1>
           <p className="mt-2 text-xs text-white/40 sm:text-sm">The most powerful launchpad on TON</p>
+          <MotionLink
+            href="/terminal"
+            whileHover={{ scale: 1.04 }}
+            whileTap={{ scale: 0.97 }}
+            className="mt-4 inline-flex items-center gap-2 rounded-full border border-ton/30 bg-ton/5 px-4 py-2 text-xs font-bold text-ton-bright transition hover:bg-ton/10"
+          >
+            ⚡ Open Terminal
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="h-3.5 w-3.5" aria-hidden>
+              <path d="M5 12h14M13 6l6 6-6 6" />
+            </svg>
+          </MotionLink>
         </motion.div>
         <StatsBar launches={launches} totalCoins={totalCoins} loading={loading} />
         <LiveLaunchesGrid launches={launches} loading={loading} />
