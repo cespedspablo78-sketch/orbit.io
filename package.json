@@ -20,6 +20,7 @@
     "@types/three": "^0.160.0",
     "framer-motion": "^11.0.0",
     "lightweight-charts": "^4.2.3",
+    "lucide-react": "^1.21.0",
     "next": "^14.2.0",
     "node-telegram-bot-api": "^0.67.0",
     "react": "^18.3.0",
