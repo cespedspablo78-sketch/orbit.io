@@ -152,6 +152,56 @@ export function genCandles(seedStr: string, count = 160, base = 0.0002) {
   return out;
 }
 
+/* ---------- Pulse (Axiom-style) dense cards ---------- */
+export type PulseToken = {
+  address: string;
+  name: string;
+  ticker: string;
+  emoji: string;
+  hue: number;
+  ageSec: number;
+  rank: number; // small corner badge
+  volumeUsd: number;
+  mcUsd: number;
+  feeTon: number;
+  tx: number;
+  holders: number;
+  snipers: number;
+  pro: number; // pro traders count
+  socials: { x: boolean; tg: boolean; web: boolean };
+  // 4 risk metrics (%): dev held, top10, sniper supply, bundlers
+  risk: [number, number, number, number];
+  tradeTon: number;
+  progress: number; // bonding %
+  dex?: string; // migrated venue
+};
+
+export const NEW_PAIRS: PulseToken[] = [
+  { address: "EQAnotpengu01", name: "NOTPENGU", ticker: "NPGU", emoji: "🐧", hue: 205, ageSec: 1, rank: 10, volumeUsd: 43, mcUsd: 2040, feeTon: 0.001, tx: 8, holders: 1, snipers: 0, pro: 0, socials: { x: true, tg: true, web: false }, risk: [0, 0, 0, 0], tradeTon: 0.12, progress: 2 },
+  { address: "EQAtondoge02", name: "TONDOGE", ticker: "TDOGE", emoji: "🐕", hue: 212, ageSec: 2, rank: 10, volumeUsd: 0, mcUsd: 2070, feeTon: 0.001, tx: 1, holders: 1, snipers: 0, pro: 0, socials: { x: true, tg: false, web: true }, risk: [0, 0, 0, 0], tradeTon: 0.12, progress: 1 },
+  { address: "EQAchaton03", name: "CHATON", ticker: "CHAT", emoji: "🐈", hue: 200, ageSec: 7, rank: 3, volumeUsd: 97, mcUsd: 2070, feeTon: 0.002, tx: 2, holders: 6, snipers: 0, pro: 1, socials: { x: true, tg: true, web: true }, risk: [4, 4, 0, 0], tradeTon: 0.12, progress: 6 },
+  { address: "EQAbinance04", name: "BINANCEDEATH", ticker: "BDTH", emoji: "💀", hue: 225, ageSec: 10, rank: 99, volumeUsd: 81, mcUsd: 2080, feeTon: 0.023, tx: 4, holders: 1, snipers: 8, pro: 1, socials: { x: false, tg: true, web: true }, risk: [0, 0, 12, 0], tradeTon: 0.12, progress: 4 },
+  { address: "EQAclark05", name: "CLARK", ticker: "CLRK", emoji: "🦅", hue: 208, ageSec: 12, rank: 6, volumeUsd: 718, mcUsd: 4000, feeTon: 0.003, tx: 5, holders: 125, snipers: 1, pro: 1, socials: { x: true, tg: true, web: false }, risk: [0, 8, 1, 0], tradeTon: 0.12, progress: 9 },
+  { address: "EQAtonwizard06", name: "TONWIZARD", ticker: "WIZ", emoji: "🧙", hue: 210, ageSec: 24, rank: 4, volumeUsd: 1240, mcUsd: 6200, feeTon: 0.004, tx: 14, holders: 88, snipers: 2, pro: 3, socials: { x: true, tg: true, web: true }, risk: [2, 11, 3, 0], tradeTon: 0.12, progress: 14 },
+  { address: "EQAcometcow07", name: "COMETCOW", ticker: "MOO", emoji: "🐮", hue: 215, ageSec: 38, rank: 5, volumeUsd: 2100, mcUsd: 12000, feeTon: 0.006, tx: 27, holders: 124, snipers: 1, pro: 4, socials: { x: true, tg: false, web: true }, risk: [0, 14, 2, 1], tradeTon: 0.12, progress: 22 },
+];
+
+export const FINAL_STRETCH: PulseToken[] = [
+  { address: "EQAtonwave08", name: "TONWAVE", ticker: "WAVE", emoji: "🌊", hue: 210, ageSec: 184, rank: 7, volumeUsd: 34000, mcUsd: 12500, feeTon: 3.625, tx: 702, holders: 90, snipers: 5, pro: 50, socials: { x: true, tg: true, web: true }, risk: [19, 0, 22, 0], tradeTon: 0.2, progress: 92 },
+  { address: "EQAvoidviper09", name: "VOIDVIPER", ticker: "VIPER", emoji: "🐍", hue: 207, ageSec: 240, rank: 9, volumeUsd: 41000, mcUsd: 14200, feeTon: 4.21, tx: 880, holders: 142, snipers: 4, pro: 61, socials: { x: true, tg: true, web: false }, risk: [12, 9, 6, 0], tradeTon: 0.2, progress: 94 },
+  { address: "EQAmoonboi10", name: "MOONBOI", ticker: "MOON", emoji: "🌙", hue: 212, ageSec: 320, rank: 12, volumeUsd: 38000, mcUsd: 16800, feeTon: 5.02, tx: 1024, holders: 211, snipers: 3, pro: 78, socials: { x: true, tg: true, web: true }, risk: [6, 12, 4, 0], tradeTon: 0.2, progress: 97 },
+  { address: "EQAgigaton11", name: "GIGATON", ticker: "GIGA", emoji: "🗿", hue: 208, ageSec: 410, rank: 8, volumeUsd: 29000, mcUsd: 11400, feeTon: 2.88, tx: 640, holders: 156, snipers: 6, pro: 44, socials: { x: false, tg: true, web: true }, risk: [3, 16, 8, 1], tradeTon: 0.2, progress: 91 },
+];
+
+export const MIGRATED: PulseToken[] = [
+  { address: "EQAkwill12", name: "KWILL", ticker: "KWILL", emoji: "🪶", hue: 205, ageSec: 240, rank: 3, volumeUsd: 98000, mcUsd: 41400, feeTon: 9.11, tx: 2298, holders: 229, snipers: 4, pro: 97, socials: { x: true, tg: true, web: true }, risk: [8, 12, 0, 0], tradeTon: 0.3, progress: 100, dex: "STON.fi" },
+  { address: "EQAdeflation13", name: "DEFLATION", ticker: "DEFL", emoji: "📉", hue: 198, ageSec: 840, rank: 40, volumeUsd: 112000, mcUsd: 5210, feeTon: 10.16, tx: 3514, holders: 141, snipers: 11, pro: 51, socials: { x: true, tg: false, web: true }, risk: [6, 3, 0, 0], tradeTon: 0.3, progress: 100, dex: "DeDust" },
+  { address: "EQAemotiguy14", name: "EMOTIGUY", ticker: "JOE", emoji: "😀", hue: 218, ageSec: 1080, rank: 18, volumeUsd: 119000, mcUsd: 84200, feeTon: 1.86, tx: 769, holders: 184, snipers: 0, pro: 31, socials: { x: true, tg: true, web: true }, risk: [0, 1, 0, 0], tradeTon: 0.3, progress: 100, dex: "STON.fi" },
+  { address: "EQAdroolmao15", name: "DROOLMAO", ticker: "DROOL", emoji: "🤤", hue: 215, ageSec: 1740, rank: 30, volumeUsd: 257000, mcUsd: 80400, feeTon: 1.75, tx: 3238, holders: 455, snipers: 0, pro: 127, socials: { x: true, tg: true, web: false }, risk: [0, 1, 0, 0], tradeTon: 0.3, progress: 100, dex: "DeDust" },
+  { address: "EQAfallingcat16", name: "FALLINGCAT", ticker: "FCAT", emoji: "🐈‍⬛", hue: 207, ageSec: 1920, rank: 134, volumeUsd: 152000, mcUsd: 2350, feeTon: 14.59, tx: 3817, holders: 214, snipers: 13, pro: 81, socials: { x: true, tg: true, web: true }, risk: [0, 1, 0, 0], tradeTon: 0.3, progress: 100, dex: "STON.fi" },
+  { address: "EQAsummer17", name: "TONSUMMER", ticker: "SUMR", emoji: "🏖️", hue: 211, ageSec: 2040, rank: 8, volumeUsd: 349000, mcUsd: 86700, feeTon: 21.7, tx: 7141, holders: 509, snipers: 8, pro: 252, socials: { x: true, tg: true, web: true }, risk: [4, 6, 0, 0], tradeTon: 0.3, progress: 100, dex: "DeDust" },
+];
+
 /* ---------- formatters ---------- */
 export function fmtUsd(n: number): string {
   if (n >= 1_000_000) return `$${(n / 1_000_000).toFixed(2)}M`;

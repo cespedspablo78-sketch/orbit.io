@@ -1,7 +1,5 @@
 "use client";
 
-import type { Token } from "@/lib/terminalMock";
-
 /* warm-dark terminal palette */
 export const UP = "#2ebd85";
 export const DOWN = "#f6465d";
@@ -25,10 +23,25 @@ export const ICONS = {
   bolt: "M13 2 3 14h8l-1 8 11-13h-8l0-7z",
   ext: "M7 17 17 7M8 7h9v9",
   chevron: "M9 6l6 6-6 6",
+  users: "M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM22 21v-2a4 4 0 0 0-3-3.87",
+  target: "M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20zM12 18a6 6 0 1 0 0-12 6 6 0 0 0 0 12zM12 14a2 2 0 1 0 0-4 2 2 0 0 0 0 4z",
+  star: "M11 3.5 13.6 8.8l5.9.9-4.3 4.1 1 5.8L11 17.9 5.8 19.6l1-5.8L2.5 9.7l5.9-.9L11 3.5z",
+  globe: "M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20zM2 12h20M12 2a15 15 0 0 1 0 20 15 15 0 0 1 0-20z",
+  send: "M22 2 11 13M22 2l-7 20-4-9-9-4 20-7z",
+  settings: "M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1.08-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1.08 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z",
+  bell: "M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 0 1-3.4 0",
+  sliders: "M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6",
+  list: "M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01",
 } as const;
 
 /* ---------- token avatar (gradient by hue + emoji) ---------- */
-export function CoinAvatar({ token, className = "h-8 w-8 text-base" }: { token: Token; className?: string }) {
+export function CoinAvatar({
+  token,
+  className = "h-8 w-8 text-base",
+}: {
+  token: { emoji: string; hue: number };
+  className?: string;
+}) {
   return (
     <span
       className={`flex shrink-0 items-center justify-center rounded-full ${className}`}
