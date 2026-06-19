@@ -19,6 +19,7 @@
     "@tonconnect/ui-react": "^3.0.0",
     "@types/three": "^0.160.0",
     "framer-motion": "^11.0.0",
+    "geist": "^1.7.2",
     "lightweight-charts": "^4.2.3",
     "lucide-react": "^1.21.0",
     "next": "^14.2.0",
