@@ -104,7 +104,10 @@ function TopBar() {
 
 export default function TerminalLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen bg-[#08090B] font-sans text-[#FAFAFA] [color-scheme:dark]">
+    <div className="relative min-h-screen bg-[#08090B] font-sans text-[#FAFAFA] [color-scheme:dark]">
+      {/* depth: subtle dot pattern + top-center blue glow */}
+      <div className="term-dots pointer-events-none fixed inset-0 -z-10" />
+      <div className="term-glow pointer-events-none fixed inset-x-0 top-0 -z-10 h-[40vh]" />
       <TopBar />
       {children}
     </div>
