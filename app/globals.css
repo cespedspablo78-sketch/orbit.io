@@ -63,21 +63,11 @@ body {
   color: transparent;
 }
 
-/* ===== terminal — Swiss/newspaper restraint ===== */
-/* hairline grid texture (kills the flat-AI feel) */
-.term-grid {
-  background-image: linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
-  background-size: 48px 48px;
-}
-/* the one ambient glow at the very top */
-.term-glow {
-  background: radial-gradient(ellipse 55% 38% at 50% 0%, rgba(0, 152, 234, 0.05), transparent 60%);
-}
-/* intentional thin scrollbar — no track */
+/* ===== terminal — Hyperliquid restraint ===== */
+/* intentional thin scrollbar — no track, no buttons */
 .term-scroll {
   scrollbar-width: thin;
-  scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
+  scrollbar-color: rgba(255, 255, 255, 0.08) transparent;
 }
 .term-scroll::-webkit-scrollbar {
   width: 4px;
@@ -86,24 +76,12 @@ body {
   background: transparent;
 }
 .term-scroll::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.08);
 }
 .term-scroll:hover::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.16);
 }
-/* live trade ticker */
-@keyframes term-marquee {
-  from {
-    transform: translateX(0);
-  }
-  to {
-    transform: translateX(-50%);
-  }
-}
-.term-marquee {
-  animation: term-marquee 40s linear infinite;
-}
-/* terminal blinking cursor */
+/* blinking underscore cursor for the status bar */
 @keyframes term-blink {
   0%,
   49% {
@@ -115,12 +93,6 @@ body {
   }
 }
 .term-cursor::after {
-  content: "▋";
-  margin-left: 2px;
+  content: "_";
   animation: term-blink 1.1s step-end infinite;
-}
-/* small-caps for labels like "vol" */
-.small-caps {
-  font-variant-caps: all-small-caps;
-  letter-spacing: 0.04em;
 }
