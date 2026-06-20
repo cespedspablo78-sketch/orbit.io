@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef } from "react";
-import { Search } from "lucide-react";
+import { ChevronDown, Search } from "lucide-react";
 
 const TABS = [
   { label: "Pulse", href: "/terminal", soon: false },
@@ -58,21 +58,30 @@ function TopBar() {
         })}
       </nav>
 
-      {/* search — no fill, hairline only */}
-      <div className="relative ml-2 hidden max-w-sm flex-1 lg:block">
-        <Search className="pointer-events-none absolute left-0 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-white/25" strokeWidth={2} />
+      {/* search — subtle fill, focus → blue border */}
+      <div className="relative ml-2 hidden max-w-md flex-1 lg:block">
+        <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-white/30" strokeWidth={2} />
         <input
           ref={searchRef}
           type="text"
-          placeholder="Search token or address"
-          className="w-full border-b border-white/[0.08] bg-transparent py-1.5 pl-6 pr-8 text-[13px] outline-none transition-colors placeholder:text-white/25 focus:border-white/25"
+          placeholder="Search by token or contract address"
+          className="w-full border border-white/[0.06] bg-white/[0.03] py-1.5 pl-9 pr-8 text-[13px] outline-none transition-colors placeholder:text-white/30 focus:border-ton"
+          style={{ borderRadius: 6 }}
         />
-        <kbd className="pointer-events-none absolute right-0 top-1/2 -translate-y-1/2 font-mono text-[10px] text-white/25">/</kbd>
+        <kbd className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 font-mono text-[10px] text-white/25">/</kbd>
       </div>
 
-      {/* right: balance + connect */}
-      <div className="ml-auto flex items-center gap-3">
-        <span className="hidden font-mono text-[12px] tabular-nums text-white/55 sm:inline">0.00 TON</span>
+      {/* right: network · balance · connect */}
+      <div className="ml-auto flex items-center gap-2.5">
+        <button
+          className="hidden items-center gap-1.5 border border-white/[0.06] px-2.5 py-1.5 text-[12px] font-semibold text-white/70 transition-colors hover:border-white/15 sm:flex"
+          style={{ borderRadius: 6 }}
+        >
+          <span className="flex h-3.5 w-3.5 items-center justify-center rounded-full bg-ton text-[8px] font-black text-white">T</span>
+          TON
+          <ChevronDown className="h-3 w-3 text-white/30" strokeWidth={2.5} />
+        </button>
+        <span className="hidden font-mono text-[12px] tabular-nums text-white/55 md:inline">0.00 TON</span>
         <button className="bg-ton px-3.5 py-1.5 text-[13px] font-semibold text-white transition-colors hover:bg-[#1AA5EE] active:bg-[#0086D2]" style={{ borderRadius: 4 }}>
           Connect
         </button>
